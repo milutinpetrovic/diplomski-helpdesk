@@ -107,6 +107,12 @@ export async function expectDbError(call: PromiseLike<DbResult>, code: string): 
   expect(error?.message).toBe(code);
 }
 
+/** Proverava da je poziv baze uspeo, kad poziv ne vraća podatke (npr. update bez select). */
+export async function expectNoDbError(call: PromiseLike<DbResult>): Promise<void> {
+  const { error } = await call;
+  expect(error, error?.message).toBeNull();
+}
+
 /** Proverava da je poziv baze uspeo (bez greške, sa podacima) i vraća podatke. */
 export async function expectDbOk<T>(
   call: PromiseLike<{ data: T; error: DbResult["error"] }>,

@@ -11,6 +11,7 @@ import {
   createTicketInStatus,
   expectDbError,
   expectDbOk,
+  expectNoDbError,
   USERS,
   type TicketRow,
 } from "./helpers";
@@ -189,7 +190,7 @@ describe("notifications", () => {
     );
     expect(notification).toBeDefined();
 
-    await expectDbOk(
+    await expectNoDbError(
       agent.from("notifications").update({ is_read: true }).eq("id", notification!.id),
     );
     const { error } = await agent

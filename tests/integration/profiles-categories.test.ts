@@ -6,7 +6,7 @@
  */
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { anonClient, as, expectDbOk, serviceClient, USERS } from "./helpers";
+import { anonClient, as, expectDbOk, expectNoDbError, serviceClient, USERS } from "./helpers";
 
 describe("profiles", () => {
   // Korisnik vidi samo svoj profil (RLS profiles_select_own_or_staff).
@@ -47,7 +47,7 @@ describe("profiles", () => {
     );
     expect(updated).toEqual({ full_name: "Marko M.", locale: "en" });
     // Vraćamo staro ime da ne utiče na druge testove.
-    await expectDbOk(
+    await expectNoDbError(
       marko
         .from("profiles")
         .update({ full_name: "Marko Marković", locale: "sr" })
@@ -136,7 +136,9 @@ describe("categories", () => {
     const created = await expectDbOk(admin.from("categories").insert(row).select("id").single());
 
     // Deaktivirana kategorija: korisnik je više ne vidi, admin je vidi.
-    await expectDbOk(admin.from("categories").update({ is_active: false }).eq("id", created.id));
+    await expectNoDbError(
+      admin.from("categories").update({ is_active: false }).eq("id", created.id),
+    );
     const ana = await as("ana");
     expect(await expectDbOk(ana.from("categories").select("id").eq("id", created.id))).toEqual([]);
     expect(
