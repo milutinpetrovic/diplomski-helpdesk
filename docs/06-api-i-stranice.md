@@ -57,15 +57,24 @@ Napomene (Faza 4):
 
 ### Zahtevi (tag `Tickets`)
 
-| Metod i putanja                 | Uloge                                    | Telo / parametri                                                                                                                | Odgovor                                                                                                                                      | UC                  |
-| ------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `GET /api/tickets`              | C A AD                                   | `?status&priority&categoryId&assigneeId(me\|unassigned\|uuid)&q&sort(createdAt\|-createdAt\|priority\|updatedAt)&page&pageSize` | `Paginated<TicketListItem>` (korisnik: samo svoje)                                                                                           | UC-10, UC-15, UC-19 |
-| `POST /api/tickets`             | C                                        | `{ title, description, categoryId, priority }`                                                                                  | `201 Ticket`                                                                                                                                 | UC-09               |
-| `GET /api/tickets/{id}`         | C A AD                                   | —                                                                                                                               | `TicketDetail` = `TicketWithRelations` + `permissions { allowedTransitions[], canComment, canCommentInternal, canAssign, canRate, canEdit }` | UC-11               |
-| `PATCH /api/tickets/{id}`       | A AD (C dok je `open`, samo naslov/opis) | `{ title?, description?, categoryId?, priority? }`                                                                              | `Ticket`                                                                                                                                     | —                   |
-| `POST /api/tickets/{id}/status` | C A AD                                   | `{ status }`                                                                                                                    | `TicketDetail`                                                                                                                               | UC-13, UC-17        |
-| `POST /api/tickets/{id}/assign` | A AD                                     | `{ assigneeId }` (agent: samo svoj id)                                                                                          | `TicketDetail`                                                                                                                               | UC-16, UC-20        |
-| `GET /api/tickets/{id}/history` | C A AD                                   | —                                                                                                                               | `TicketHistoryEntry[]` (sa imenom aktera)                                                                                                    | UC-11               |
+| Metod i putanja                 | Uloge                                    | Telo / parametri                                                                                                                                       | Odgovor                                                                                                                                      | UC                  |
+| ------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `GET /api/tickets`              | C A AD                                   | `?status&priority&categoryId&assigneeId(me\|unassigned\|uuid)&q&sort(-createdAt\|createdAt\|-updatedAt\|updatedAt\|-priority\|priority)&page&pageSize` | `Paginated<TicketListItem>` (korisnik: samo svoje)                                                                                           | UC-10, UC-15, UC-19 |
+| `POST /api/tickets`             | C                                        | `{ title, description, categoryId, priority }`                                                                                                         | `201 TicketDetail`                                                                                                                           | UC-09               |
+| `GET /api/tickets/{id}`         | C A AD                                   | —                                                                                                                                                      | `TicketDetail` = `TicketWithRelations` + `permissions { allowedTransitions[], canComment, canCommentInternal, canAssign, canRate, canEdit }` | UC-11               |
+| `PATCH /api/tickets/{id}`       | A AD (C dok je `open`, samo naslov/opis) | `{ title?, description?, categoryId?, priority? }`                                                                                                     | `TicketDetail`                                                                                                                               | —                   |
+| `POST /api/tickets/{id}/status` | C A AD                                   | `{ status }`                                                                                                                                           | `TicketDetail`                                                                                                                               | UC-13, UC-17        |
+| `POST /api/tickets/{id}/assign` | A AD                                     | `{ assigneeId }` (agent: samo svoj id; admin: id ili `null` = oslobodi)                                                                                | `TicketDetail`                                                                                                                               | UC-16, UC-20        |
+| `GET /api/tickets/{id}/history` | C A AD                                   | —                                                                                                                                                      | `TicketHistoryEntry[]` (sa imenom aktera)                                                                                                    | UC-11               |
+
+Napomene (Faza 5a):
+
+- Sve izmene zahteva (`POST`, `PATCH`, `/status`, `/assign`) vraćaju `TicketDetail`, sa novim `permissions`, pa UI odmah zna koja dugmad da prikaže.
+- `TicketListItem` = `id, number, title, status, priority, createdAt, updatedAt, category, creator, assignee`. `creator`/`assignee` su `ProfileSummary` (`id, fullName, avatarUrl, role`, bez emaila) ili `null` ako ime nije vidljivo.
+- Pretraga `q`: `#1042` (ili `1042`) traži po broju zahteva; inače se reči traže kao početak reči u naslovu i opisu (sve reči moraju postojati), preko kolone `search_vector`.
+- Prazan query parametar (npr. `?status=`) se tretira kao da nije poslat. Stranica posle poslednje vraća `items: []` uz tačan `total`.
+- `TicketHistoryEntry` = `id, action, actor (null = sistem), assignee (za assigned/unassigned), oldValue, newValue, createdAt`.
+- Agent dobija `403 NOT_ASSIGNED_AGENT` za izmenu ili promenu statusa zahteva koji nije njegov; tuđ zahtev za korisnika je uvek `404 TICKET_NOT_FOUND`.
 
 ### Komentari (tag `Comments`)
 
@@ -94,17 +103,17 @@ Napomene (Faza 4):
 
 | Metod i putanja                    | Uloge  | Telo / parametri                                                       | Odgovor        | UC           |
 | ---------------------------------- | ------ | ---------------------------------------------------------------------- | -------------- | ------------ |
-| `GET /api/categories`              | C A AD | `?includeInactive` (samo AD)                                           | `Category[]`   | UC-09, UC-22 |
+| `GET /api/categories`              | C A AD | `?includeInactive=true` (samo AD, inače 403)                           | `Category[]`   | UC-09, UC-22 |
 | `POST /api/admin/categories`       | AD     | `{ slug, nameEn, nameSr, descriptionEn?, descriptionSr?, sortOrder? }` | `201 Category` | UC-22        |
 | `PATCH /api/admin/categories/{id}` | AD     | iste kolone + `isActive`                                               | `Category`     | UC-22        |
 
 ### Administracija (tag `Admin`)
 
-| Metod i putanja               | Uloge | Telo / parametri                 | Odgovor                                                                      | UC    |
-| ----------------------------- | ----- | -------------------------------- | ---------------------------------------------------------------------------- | ----- |
-| `GET /api/admin/users`        | AD    | `?q&role&isActive&page&pageSize` | `Paginated<Profile>`                                                         | UC-21 |
-| `PATCH /api/admin/users/{id}` | AD    | `{ role?, isActive? }`           | `Profile`                                                                    | UC-21 |
-| `GET /api/agents`             | A AD  | —                                | `ProfileSummary[]` (aktivni agenti i admini, sa brojem otvorenih dodeljenih) | UC-20 |
+| Metod i putanja               | Uloge | Telo / parametri                 | Odgovor                                                                             | UC    |
+| ----------------------------- | ----- | -------------------------------- | ----------------------------------------------------------------------------------- | ----- |
+| `GET /api/admin/users`        | AD    | `?q&role&isActive&page&pageSize` | `Paginated<Profile>`                                                                | UC-21 |
+| `PATCH /api/admin/users/{id}` | AD    | `{ role?, isActive? }`           | `Profile`                                                                           | UC-21 |
+| `GET /api/agents`             | A AD  | —                                | `AgentSummary[]` = `ProfileSummary` + `openAssignedCount` (aktivni agenti i admini) | UC-20 |
 
 ### Dashboard i analitika (tagovi `Dashboard`, `Analytics`)
 
@@ -135,7 +144,7 @@ Napomene (Faza 4):
 | `categories.ts` | `categorySchema`, `updateCategorySchema`                                                                                                                                                                                                  |
 | `admin.ts`      | `userListQuerySchema`, `adminUpdateUserSchema` (bar jedno polje)                                                                                                                                                                          |
 | `analytics.ts`  | `dateRangeQuerySchema` (from < to, max 366 dana, podrazumevano poslednjih 30), `byDimensionQuerySchema`, `trendQuerySchema`                                                                                                               |
-| `common.ts`     | `paginationSchema`, `uuidSchema`                                                                                                                                                                                                          |
+| `common.ts`     | `paginationSchema`, `uuidSchema`, `idParamsSchema`, `paginatedSchema()`, `profileSummarySchema`                                                                                                                                           |
 
 Svaka šema se koristi na tri mesta: forma (react-hook-form + `zodResolver`), API ruta (`withApi`) i OpenAPI registar (`.openapi({ example })`).
 
