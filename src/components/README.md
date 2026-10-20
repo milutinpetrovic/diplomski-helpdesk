@@ -4,3 +4,9 @@
 - `layout/` i ostali domenski folderi (`tickets/`, `comments/`, `dashboard/`, ...) — naše komponente, nazivi u `PascalCase.tsx`.
 
 Spisak planiranih komponenti: `docs/03-dijagram-klasa.md`, sekcija 5.
+
+## tickets/ (Faza 5b)
+
+- `TicketList` (tabela na računaru, kartice na telefonu), `TicketFilters` (filteri u adresi), `TicketPagination`
+- `NewTicketForm`, `TicketActions` (dugmad po `permissions`), `TicketComments` + `CommentForm`, `TicketHistory`, `RatingForm` + `RatingStars`, `TicketBadges`
+- `ticket-labels.ts` (boje, nazivi dugmadi prelaza, sortiranja) i `list-params.ts` (adresa <-> filteri) su čiste funkcije pokrivene testom `tests/unit/ticket-ui.test.ts`.

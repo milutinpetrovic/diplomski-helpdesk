@@ -20,6 +20,7 @@ import { FormField } from "@/components/forms/FormField";
 import { applyApiError } from "@/components/forms/apply-api-error";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useApiClient } from "@/hooks/use-api-client";
 import type { ErrorCode } from "@/lib/errors/codes";
 import { locales } from "@/lib/i18n/config";
@@ -79,17 +80,13 @@ export function ProfileForm({ profile }: { profile: Profile }) {
       {/* Izbor jezika: običan <select>, radi tastaturom i na telefonu. */}
       <div className="flex flex-col gap-2">
         <Label htmlFor="locale">{t("profile.language")}</Label>
-        <select
-          id="locale"
-          className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm"
-          {...register("locale")}
-        >
+        <NativeSelect id="locale" {...register("locale")}>
           {locales.map((locale) => (
             <option key={locale} value={locale}>
               {t(`language.${locale}Full`)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
       {formError ? <FormAlert>{t(`errors.${formError}`)}</FormAlert> : null}
       <Button

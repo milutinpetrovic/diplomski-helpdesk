@@ -22,11 +22,13 @@ import type { UserRole } from "@/types/domain";
 export function NavLinks({ role, onNavigate }: { role: UserRole; onNavigate?: () => void }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const items = getNavItems(role);
 
   return (
     <ul className="flex flex-col gap-1">
-      {getNavItems(role).map(({ key, href, icon: Icon }) => {
-        const active = isNavItemActive(href, pathname);
+      {items.map(({ key, href, icon: Icon }) => {
+        // Aktivna je samo najbliža stavka (/tickets/new ne ističe i /tickets).
+        const active = isNavItemActive(href, pathname, items);
         return (
           <li key={key}>
             <Link

@@ -101,7 +101,10 @@
     "users": "Users",
     "categories": "Categories",
     "apiDocs": "API documentation",
-    "logout": "Sign out"
+    "logout": "Sign out",
+    "tickets": "Tickets",
+    "myTickets": "My tickets",
+    "newTicket": "New ticket"
   },
   "roles": {
     "customer": "Customer",
@@ -132,7 +135,168 @@
   "forbidden": {
     "title": "Access denied",
     "text": "This page is available to administrators only.",
-    "back": "Back to the dashboard"
+    "back": "Back to the dashboard",
+    "customerOnly": "New tickets are submitted by customers. As a support team member, you handle tickets on the “Tickets” page.",
+    "toTickets": "Go to tickets"
+  },
+  "ticketStatus": {
+    "open": "Open",
+    "in_progress": "In progress",
+    "waiting_on_customer": "Waiting on customer",
+    "resolved": "Resolved",
+    "closed": "Closed"
+  },
+  "ticketPriority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "tickets": {
+    "list": {
+      "titleCustomer": "My tickets",
+      "titleStaff": "Tickets",
+      "descriptionCustomer": "Tickets you have submitted and their current status.",
+      "descriptionStaff": "All customer tickets. Filter, search and pick up a ticket to work on.",
+      "newTicket": "New ticket",
+      "empty": "No tickets match the filters.",
+      "emptyCustomer": "You have not submitted any tickets yet.",
+      "total": "{total, plural, one {# ticket} other {# tickets}}",
+      "unassigned": "Unassigned",
+      "noCategory": "No category",
+      "caption": "Ticket list"
+    },
+    "columns": {
+      "number": "Number",
+      "title": "Title",
+      "status": "Status",
+      "priority": "Priority",
+      "category": "Category",
+      "creator": "Requester",
+      "assignee": "Assignee",
+      "updatedAt": "Last updated",
+      "createdAt": "Created"
+    },
+    "filters": {
+      "label": "Filters",
+      "search": "Search",
+      "searchPlaceholder": "Title, description or #number",
+      "searchSubmit": "Search",
+      "all": "All",
+      "allCategories": "All categories",
+      "assigneeMe": "Assigned to me",
+      "assigneeUnassigned": "Unassigned",
+      "sort": "Sort by",
+      "reset": "Clear filters"
+    },
+    "sort": {
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "recentlyUpdated": "Recently updated",
+      "leastRecentlyUpdated": "Least recently updated",
+      "priorityDesc": "Most urgent first",
+      "priorityAsc": "Least urgent first"
+    },
+    "pagination": {
+      "label": "Pages",
+      "previous": "Previous",
+      "next": "Next",
+      "status": "Page {page} of {pages}"
+    },
+    "new": {
+      "title": "New ticket",
+      "description": "Describe the problem as precisely as you can. The support team will reply in this ticket.",
+      "cardTitle": "About the problem",
+      "titleHint": "Short, e.g. “Printer in office 12 is not working”.",
+      "descriptionHint": "What happened, when, and what you have already tried.",
+      "categoryPlaceholder": "Choose a category",
+      "submit": "Submit ticket",
+      "created": "Ticket #{number} has been submitted."
+    },
+    "fields": {
+      "title": "Title",
+      "description": "Problem description",
+      "category": "Category",
+      "priority": "Priority"
+    },
+    "detail": {
+      "back": "Back to tickets",
+      "details": "Ticket details",
+      "description": "Description",
+      "creator": "Requester",
+      "assignee": "Assignee",
+      "category": "Category",
+      "createdAt": "Created",
+      "updatedAt": "Last updated",
+      "resolvedAt": "Resolved",
+      "closedAt": "Closed",
+      "notFoundTitle": "Ticket not found",
+      "notFoundText": "The ticket does not exist or you do not have access to it."
+    },
+    "actions": {
+      "title": "Actions",
+      "none": "There are no actions you can take right now.",
+      "claim": "Pick up ticket",
+      "claimed": "You picked up the ticket.",
+      "assignLabel": "Assign to team member",
+      "assignNobody": "Nobody (unassign)",
+      "agentOption": "{name} ({count} open)",
+      "assignSubmit": "Save assignment",
+      "assigned": "Assignment saved.",
+      "statusLabel": "Change status",
+      "statusChanged": "New status: {status}.",
+      "resolvedHint": "The support team marked this ticket as resolved. Confirm the resolution, or reopen it if the problem persists.",
+      "cancelConfirm": "Are you sure you want to cancel this ticket? After that, only the support team can reopen it.",
+      "cancelYes": "Yes, cancel",
+      "cancelNo": "No"
+    },
+    "transitions": {
+      "startWork": "Start work",
+      "waitOnCustomer": "Wait for customer reply",
+      "resume": "Resume work",
+      "resolve": "Mark as resolved",
+      "close": "Close ticket",
+      "cancel": "Cancel ticket",
+      "confirm": "Confirm resolution",
+      "reopen": "Reopen"
+    },
+    "comments": {
+      "title": "Comments",
+      "empty": "No comments yet.",
+      "internal": "Internal note",
+      "internalHint": "Visible to the support team only, not to the customer.",
+      "label": "New comment",
+      "placeholder": "Write a reply…",
+      "submit": "Send",
+      "added": "Comment added.",
+      "noteAdded": "Internal note added.",
+      "unknownAuthor": "Unknown user",
+      "closed": "The ticket is closed, so it can no longer be commented on."
+    },
+    "history": {
+      "title": "Change history",
+      "empty": "No changes recorded.",
+      "system": "System",
+      "created": "Ticket created",
+      "status_changed": "Status changed: {from} → {to}",
+      "assigned": "Assigned to: {name}",
+      "unassigned": "Unassigned from: {name}",
+      "priority_changed": "Priority changed: {from} → {to}",
+      "category_changed": "Category changed: {from} → {to}",
+      "updated": "Title or description edited",
+      "rated": "Rated: {score} out of 5",
+      "unknown": "unknown"
+    },
+    "rating": {
+      "title": "Satisfaction rating",
+      "prompt": "How satisfied are you with the resolution?",
+      "stars": "{count, plural, one {# star} other {# stars}}",
+      "comment": "Comment (optional)",
+      "submit": "Submit rating",
+      "thanks": "Thank you for your rating!",
+      "given": "Customer rating",
+      "value": "{score} out of 5"
+    }
   },
   "errors": {
     "VALIDATION_ERROR": "The data is not valid. Check the highlighted fields.",

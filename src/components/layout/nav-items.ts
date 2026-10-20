@@ -5,12 +5,15 @@
  * Sakrivanje stavke je samo udobnost; pravu zaštitu rade server (layout.tsx
  * za /admin i /analytics) i API (withApi).
  * Koriste ga: NavLinks (meni na računaru i na telefonu).
- * Stavke „Zahtevi“, „Novi zahtev“ i „Obaveštenja“ dodaju se u fazama 5 i 7.
+ * Korisnik vidi „Moji zahtevi“ i „Novi zahtev“, a tim podrške „Zahtevi“ (ista
+ * stranica /tickets, drugačiji naziv). Stavka „Obaveštenja“ dolazi u Fazi 7.
  */
 import {
   ChartColumn,
   FileCode2,
   LayoutDashboard,
+  ListTodo,
+  SquarePen,
   Tags,
   UserRound,
   Users,
@@ -22,7 +25,16 @@ import type { UserRole } from "@/types/domain";
 /** Jedna stavka menija. */
 export interface NavItem {
   /** Ključ prevoda u messages/*.json -> nav.<key>. */
-  key: "dashboard" | "profile" | "analytics" | "users" | "categories" | "apiDocs";
+  key:
+    | "dashboard"
+    | "tickets"
+    | "myTickets"
+    | "newTicket"
+    | "profile"
+    | "analytics"
+    | "users"
+    | "categories"
+    | "apiDocs";
   href: string;
   icon: LucideIcon;
   /** Uloge koje vide stavku. */
@@ -37,6 +49,9 @@ export const NAV_ITEMS: readonly NavItem[] = [
     icon: LayoutDashboard,
     roles: ["customer", "agent", "admin"],
   },
+  { key: "myTickets", href: "/tickets", icon: ListTodo, roles: ["customer"] },
+  { key: "newTicket", href: "/tickets/new", icon: SquarePen, roles: ["customer"] },
+  { key: "tickets", href: "/tickets", icon: ListTodo, roles: ["agent", "admin"] },
   { key: "analytics", href: "/analytics", icon: ChartColumn, roles: ["admin"] },
   { key: "users", href: "/admin/users", icon: Users, roles: ["admin"] },
   { key: "categories", href: "/admin/categories", icon: Tags, roles: ["admin"] },
@@ -53,9 +68,25 @@ export function getNavItems(role: UserRole): NavItem[] {
 }
 
 /**
- * Da li je stavka „aktivna“ (korisnik je na toj stranici ili njenoj podstranici).
- * Ulaz: href stavke i trenutna putanja. Primer: /admin/users je aktivna i na /admin/users/5.
+ * Da li putanja pripada stavki (ta stranica ili njena podstranica).
+ * Primer: /admin/users pripada i /admin/users/5.
  */
-export function isNavItemActive(href: string, pathname: string): boolean {
+function belongsTo(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/**
+ * Da li je stavka „aktivna“ (korisnik je na toj stranici ili njenoj podstranici).
+ * Ulaz: href stavke, trenutna putanja i sve stavke menija koje korisnik vidi.
+ * Ako putanji pripada više stavki, aktivna je ona sa najdužom adresom: na
+ * /tickets/new je aktivno „Novi zahtev“, a ne i „Moji zahtevi“ (/tickets),
+ * dok na /tickets/5 ostaje aktivno „Moji zahtevi“.
+ */
+export function isNavItemActive(
+  href: string,
+  pathname: string,
+  items: readonly Pick<NavItem, "href">[] = [],
+): boolean {
+  if (!belongsTo(href, pathname)) return false;
+  return !items.some((item) => item.href.length > href.length && belongsTo(item.href, pathname));
 }
