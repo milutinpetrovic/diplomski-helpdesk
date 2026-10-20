@@ -4,8 +4,8 @@
  * oblik tipova generisanih iz baze.
  * Koriste ga: servisi, provera prijave (AuthContext), Zod šeme i komponente.
  * Povezano sa: src/types/database.ts (generisan iz baze, `pnpm db:types`) i
- * docs/03-dijagram-klasa.md, sekcija 2. Tipovi redova (Ticket, Comment...)
- * dodaju se u fazama u kojima se prvi put koriste.
+ * docs/03-dijagram-klasa.md, sekcija 2. Tipovi redova u odgovorima API-ja
+ * (Ticket, TicketComment...) izvode se iz Zod šema u src/lib/validation/.
  */
 import type { Database } from "@/types/database";
 
@@ -32,3 +32,32 @@ export const USER_ROLES = ["customer", "agent", "admin"] as const satisfies read
 
 /** Uloge tima podrške (agent i admin). */
 export const STAFF_ROLES = ["agent", "admin"] as const satisfies readonly UserRole[];
+
+/** Svi statusi zahteva, redom kojim zahtev prolazi kroz obradu. */
+export const TICKET_STATUSES = [
+  "open",
+  "in_progress",
+  "waiting_on_customer",
+  "resolved",
+  "closed",
+] as const satisfies readonly TicketStatus[];
+
+/** Svi prioriteti, od najnižeg do najvišeg (isti redosled kao enum u bazi). */
+export const TICKET_PRIORITIES = [
+  "low",
+  "medium",
+  "high",
+  "urgent",
+] as const satisfies readonly TicketPriority[];
+
+/** Sve vrste stavki u istoriji zahteva. */
+export const HISTORY_ACTIONS = [
+  "created",
+  "status_changed",
+  "assigned",
+  "unassigned",
+  "priority_changed",
+  "category_changed",
+  "updated",
+  "rated",
+] as const satisfies readonly HistoryAction[];

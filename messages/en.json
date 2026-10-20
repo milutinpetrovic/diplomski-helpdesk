@@ -83,7 +83,12 @@
     "passwordWeak": "Password must have at least 8 characters, with at least one letter and one number.",
     "passwordTooLong": "Password can have at most 72 characters.",
     "passwordMismatch": "Passwords do not match.",
-    "passwordSame": "The new password must be different from the old one."
+    "passwordSame": "The new password must be different from the old one.",
+    "titleLength": "The title must be 5 to 150 characters long.",
+    "descriptionLength": "The description must be 10 to 5000 characters long.",
+    "commentLength": "The comment must be 1 to 5000 characters long.",
+    "scoreRange": "Choose a rating from 1 to 5 stars.",
+    "ratingCommentLength": "The rating comment can be at most 1000 characters long."
   },
   "nav": {
     "label": "Main menu",

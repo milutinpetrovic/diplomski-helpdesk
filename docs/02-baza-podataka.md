@@ -263,7 +263,7 @@ stateDiagram-v2
     closed --> [*]
 ```
 
-Tabela prelaza (izvor istine u kodu: `src/services/tickets/status-transitions.ts`; ista tabela ide u rad):
+Tabela prelaza (izvor istine u kodu: `src/services/policies/status-transitions.ts`; ista tabela ide u rad):
 
 | Iz → U                                | Korisnik (vlasnik)                 | Agent (dodeljen)      | Admin |
 | ------------------------------------- | ---------------------------------- | --------------------- | ----- |
@@ -277,7 +277,7 @@ Tabela prelaza (izvor istine u kodu: `src/services/tickets/status-transitions.ts
 | `resolved` → `in_progress`            | da (ponovno otvaranje)             | da                    | da    |
 | `closed` → `open`                     | —                                  | —                     | da    |
 
-> **Pretpostavka (čeka Milutinovu potvrdu):** korisnik sme da otkaže svoj otvoren zahtev, da potvrdi rešenje (zatvori) i da ponovo otvori rešen zahtev. Zatvoren zahtev ponovo otvara samo admin. Ako Milutin odluči drugačije, menja se samo ova tabela i `status-transitions.ts`.
+> **Potvrđeno (Faza 2):** korisnik sme da otkaže svoj otvoren zahtev, da potvrdi rešenje (zatvori) i da ponovo otvori rešen zahtev. Zatvoren zahtev ponovo otvara samo admin. Ako Milutin odluči drugačije, menja se samo ova tabela i `status-transitions.ts`.
 
 Pravila vremenskih oznaka: ulazak u `resolved` postavlja `resolved_at = now()`; ulazak u `closed` postavlja `closed_at = now()`; izlazak iz `resolved`/`closed` nazad u rad briše `resolved_at`/`closed_at`. `first_response_at` se postavlja jednom i nikad ne briše.
 
@@ -345,6 +345,7 @@ Izmena komentara (autor, u roku od 15 min) je odložena kao moguće proširenje.
 ## 9. Demo podaci (`supabase/seed.sql` + `scripts/seed-demo.ts`)
 
 - `supabase/seed.sql` (Faza 2, lokalni razvoj i testovi): 5 kategorija i 5 naloga sa fiksnim ID-jevima — `admin@helpdesk.test`, `agent@helpdesk.test`, `agent2@helpdesk.test`, `ana@helpdesk.test`, `marko@helpdesk.test`, lozinka `Lozinka123!` (README).
+- Isti fajl (Faza 5): 12 demo zahteva (#1001–#1012, fiksni ID-jevi `20000000-...-0000000000NN`) u svim statusima, sa komentarima, internim beleškama, istorijom i jednom ocenom; vremena su relativna u odnosu na `now()`.
 - `scripts/seed-demo.ts` (Faza 8): 1 admin, 4 agenta, 20 korisnika.
 - 5 kategorija (sr + en nazivi).
 - ~150 zahteva raspoređenih kroz poslednjih 6 meseci, sa realnim odnosom statusa (većina `closed`/`resolved`, deo otvorenih), različitim prioritetima i agentima.

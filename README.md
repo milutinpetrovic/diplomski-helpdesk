@@ -41,21 +41,23 @@ Lozinka za sve naloge: `Lozinka123!`
 | `ana@helpdesk.test`    | Korisnik      |
 | `marko@helpdesk.test`  | Korisnik      |
 
+Seed pravi i **12 demo zahteva** (#1001–#1012) u svim statusima, sa komentarima, internim beleškama agenata, istorijom i jednom ocenom: Ana i Marko imaju po šest zahteva, a rešavaju ih agenti Jelena i Nikola. Zahtev #1004 je rešen i Ana može da ga oceni. `pnpm db:reset` vraća bazu na ove početne podatke.
+
 ## Komande
 
-| Komanda                             | Šta radi                                                                                  |
-| ----------------------------------- | ----------------------------------------------------------------------------------------- |
-| `pnpm dev`                          | pokreće aplikaciju u razvojnom režimu                                                     |
-| `pnpm build`                        | pravi produkcioni build                                                                   |
-| `pnpm start`                        | pokreće produkcioni build                                                                 |
-| `pnpm lint`                         | ESLint provera                                                                            |
-| `pnpm typecheck`                    | generiše tipove ruta i proverava TypeScript                                               |
-| `pnpm format` / `pnpm format:check` | formatira kod / proverava format (Prettier)                                               |
-| `pnpm db:start` / `pnpm db:stop`    | pokreće / zaustavlja lokalni Supabase                                                     |
-| `pnpm db:reset`                     | briše lokalnu bazu i ponovo primenjuje migracije i seed                                   |
-| `pnpm db:types`                     | generiše TypeScript tipove baze u `src/types/database.ts`                                 |
-| `pnpm test:unit`                    | unit testovi (bez baze): withApi, greške, Zod šeme, zaštita stranica, OpenAPI, real-time  |
-| `pnpm test:db`                      | integracioni testovi (RLS, RPC, prelazi statusa, prijava i profil); traži `pnpm db:start` |
+| Komanda                             | Šta radi                                                                                |
+| ----------------------------------- | --------------------------------------------------------------------------------------- |
+| `pnpm dev`                          | pokreće aplikaciju u razvojnom režimu                                                   |
+| `pnpm build`                        | pravi produkcioni build                                                                 |
+| `pnpm start`                        | pokreće produkcioni build                                                               |
+| `pnpm lint`                         | ESLint provera                                                                          |
+| `pnpm typecheck`                    | generiše tipove ruta i proverava TypeScript                                             |
+| `pnpm format` / `pnpm format:check` | formatira kod / proverava format (Prettier)                                             |
+| `pnpm db:start` / `pnpm db:stop`    | pokreće / zaustavlja lokalni Supabase                                                   |
+| `pnpm db:reset`                     | briše lokalnu bazu i ponovo primenjuje migracije i seed                                 |
+| `pnpm db:types`                     | generiše TypeScript tipove baze u `src/types/database.ts`                               |
+| `pnpm test:unit`                    | unit testovi (bez baze): withApi, greške, Zod šeme, pravila statusa i pristupa, OpenAPI |
+| `pnpm test:db`                      | integracioni testovi (RLS, RPC, API zahteva, prijava i profil); traži `pnpm db:start`   |
 
 ## Promenljive okruženja
 

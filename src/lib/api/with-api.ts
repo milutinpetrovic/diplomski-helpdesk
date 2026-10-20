@@ -112,7 +112,7 @@ export function withApi(
 
       // Korak 2: provera ulaza (ZodError -> 400 VALIDATION_ERROR u handleru grešaka).
       const params = options.params?.parse(await context.params);
-      const query = options.query?.parse(Object.fromEntries(new URL(request.url).searchParams));
+      const query = options.query?.parse(readQuery(request));
       const body = options.body?.parse(await readJsonBody(request));
 
       // Korak 3: poslovna logika (servis).
@@ -127,6 +127,15 @@ export function withApi(
       return toErrorResponse(error, locale);
     }
   };
+}
+
+/**
+ * Čita query parametre kao objekat. Prazni parametri (npr. ?status= kad je
+ * filter u formi prazan) se izostavljaju, kao da nisu ni poslati.
+ */
+function readQuery(request: Request): Record<string, string> {
+  const entries = [...new URL(request.url).searchParams].filter(([, value]) => value !== "");
+  return Object.fromEntries(entries);
 }
 
 /** Čita JSON telo; neispravan JSON je VALIDATION_ERROR (400), a ne 500. */

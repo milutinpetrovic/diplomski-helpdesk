@@ -83,7 +83,12 @@
     "passwordWeak": "Lozinka mora imati najmanje 8 znakova, bar jedno slovo i jedan broj.",
     "passwordTooLong": "Lozinka može imati najviše 72 znaka.",
     "passwordMismatch": "Lozinke se ne poklapaju.",
-    "passwordSame": "Nova lozinka mora biti drugačija od stare."
+    "passwordSame": "Nova lozinka mora biti drugačija od stare.",
+    "titleLength": "Naslov mora imati od 5 do 150 znakova.",
+    "descriptionLength": "Opis mora imati od 10 do 5000 znakova.",
+    "commentLength": "Komentar mora imati od 1 do 5000 znakova.",
+    "scoreRange": "Izaberite ocenu od 1 do 5 zvezdica.",
+    "ratingCommentLength": "Komentar uz ocenu može imati najviše 1000 znakova."
   },
   "nav": {
     "label": "Glavni meni",

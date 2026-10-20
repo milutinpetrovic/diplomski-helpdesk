@@ -126,7 +126,7 @@ $$;
 
 -- Funkcija is_status_transition_allowed: tabela dozvoljenih prelaza statusa
 -- (docs/02, sekcija 4). Ista tabela postoji i u TypeScript-u
--- (src/services/tickets/status-transitions.ts) da bi UI znao koja dugmad
+-- (src/services/policies/status-transitions.ts) da bi UI znao koja dugmad
 -- da prikaže; baza je poslednja linija odbrane.
 --   admin    - svi prelazi iz tabele
 --   agent    - samo na zahtevima koji su mu dodeljeni

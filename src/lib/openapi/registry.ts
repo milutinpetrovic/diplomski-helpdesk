@@ -91,3 +91,18 @@ export function errorResponses(
   }
   return responses;
 }
+
+/**
+ * Telo JSON zahteva za Swagger (ista Zod šema kao u ruti), uz opcioni primer
+ * koji Swagger UI popunjava kod „Try it out“.
+ */
+export function jsonBody(schema: z.ZodType, example?: unknown) {
+  return {
+    content: { "application/json": { schema, ...(example === undefined ? {} : { example }) } },
+  };
+}
+
+/** Uspešan JSON odgovor za Swagger: opis i Zod šema tela odgovora. */
+export function jsonResponse(description: string, schema: z.ZodType) {
+  return { description, content: { "application/json": { schema } } };
+}
