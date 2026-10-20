@@ -110,10 +110,10 @@ Legenda uloga: **G** gost, **C** customer (korisnik), **A** agent, **AD** admin.
 
 ### Dokumentacija (tag `Docs`)
 
-| Metod i putanja            | Uloge                                            | Odgovor        |
-| -------------------------- | ------------------------------------------------ | -------------- |
-| `GET /api/openapi`         | svi                                              | OpenAPI 3 JSON |
-| `GET /api-docs` (stranica) | svi u razvoju/demo; produkcija: otvoreno pitanje | Swagger UI     |
+| Metod i putanja            | Uloge                                                  | Odgovor        |
+| -------------------------- | ------------------------------------------------------ | -------------- |
+| `GET /api/openapi`         | svi (tag `System`; 404 ako je `SWAGGER_ENABLED=false`) | OpenAPI 3 JSON |
+| `GET /api-docs` (stranica) | svi u razvoju/demo; produkcija: otvoreno pitanje       | Swagger UI     |
 
 ## 3. Zod šeme (u `src/lib/validation/`)
 

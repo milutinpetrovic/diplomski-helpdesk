@@ -28,5 +28,31 @@
       }
     },
     "comingSoon": "Prijava i registracija biće dostupne u sledećoj fazi razvoja."
+  },
+  "errors": {
+    "VALIDATION_ERROR": "Podaci nisu ispravni. Proverite označena polja.",
+    "UNAUTHENTICATED": "Potrebno je da se prijavite.",
+    "INVALID_CREDENTIALS": "Pogrešan email ili lozinka.",
+    "FORBIDDEN": "Nemate pravo da izvršite ovu radnju.",
+    "ACCOUNT_DISABLED": "Vaš nalog je deaktiviran. Obratite se administratoru.",
+    "NOT_ASSIGNED_AGENT": "Ovaj zahtev nije dodeljen vama.",
+    "FORBIDDEN_INTERNAL_COMMENT": "Interne beleške mogu da pišu samo članovi tima podrške.",
+    "EMAIL_NOT_CONFIRMED": "Email adresa još nije potvrđena. Proverite poštu.",
+    "NOT_FOUND": "Traženi podatak ne postoji.",
+    "TICKET_NOT_FOUND": "Zahtev ne postoji ili nemate pristup njemu.",
+    "INVALID_STATUS_TRANSITION": "Ova promena statusa nije dozvoljena.",
+    "TICKET_ALREADY_ASSIGNED": "Zahtev je već preuzeo drugi agent.",
+    "ASSIGNEE_NOT_AGENT": "Zahtev se može dodeliti samo aktivnom članu tima podrške.",
+    "TICKET_CLOSED": "Zahtev je zatvoren i ne može se menjati.",
+    "ALREADY_RATED": "Ovaj zahtev je već ocenjen.",
+    "TICKET_NOT_RESOLVED": "Zahtev se može oceniti tek kada je rešen.",
+    "EMAIL_ALREADY_REGISTERED": "Nalog sa ovom email adresom već postoji.",
+    "CANNOT_MODIFY_SELF": "Ne možete menjati ulogu ili status sopstvenog naloga.",
+    "RATE_LIMITED": "Previše pokušaja. Pokušajte ponovo za nekoliko minuta.",
+    "INTERNAL_ERROR": "Došlo je do neočekivane greške. Pokušajte ponovo."
+  },
+  "apiDocs": {
+    "title": "API dokumentacija",
+    "description": "Svi API pozivi aplikacije (OpenAPI 3). Za pozive koji traže prijavu kliknite „Authorize“ i unesite pristupni token (JWT)."
   }
 }

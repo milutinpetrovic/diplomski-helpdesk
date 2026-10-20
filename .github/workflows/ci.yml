@@ -1,5 +1,6 @@
 # Automatska provera koda na svaki push i Pull Request:
-# lint (ESLint), provera tipova (TypeScript), provera formata (Prettier) i build (Next.js).
+# lint (ESLint), provera tipova (TypeScript), provera formata (Prettier), unit testovi (Vitest)
+# i build (Next.js).
 name: CI
 
 on:
@@ -21,6 +22,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm format:check
+      - run: pnpm test:unit
       - run: pnpm build
 
   # Provera baze: pokreće pravi lokalni Supabase (Docker), primenjuje sve

@@ -28,5 +28,31 @@
       }
     },
     "comingSoon": "Sign in and registration will be available in the next development phase."
+  },
+  "errors": {
+    "VALIDATION_ERROR": "The data is not valid. Check the highlighted fields.",
+    "UNAUTHENTICATED": "You need to sign in.",
+    "INVALID_CREDENTIALS": "Wrong email or password.",
+    "FORBIDDEN": "You are not allowed to perform this action.",
+    "ACCOUNT_DISABLED": "Your account has been deactivated. Contact an administrator.",
+    "NOT_ASSIGNED_AGENT": "This ticket is not assigned to you.",
+    "FORBIDDEN_INTERNAL_COMMENT": "Only support team members can write internal notes.",
+    "EMAIL_NOT_CONFIRMED": "Your email address is not confirmed yet. Check your inbox.",
+    "NOT_FOUND": "The requested item does not exist.",
+    "TICKET_NOT_FOUND": "The ticket does not exist or you do not have access to it.",
+    "INVALID_STATUS_TRANSITION": "This status change is not allowed.",
+    "TICKET_ALREADY_ASSIGNED": "The ticket has already been taken by another agent.",
+    "ASSIGNEE_NOT_AGENT": "A ticket can only be assigned to an active support team member.",
+    "TICKET_CLOSED": "The ticket is closed and cannot be changed.",
+    "ALREADY_RATED": "This ticket has already been rated.",
+    "TICKET_NOT_RESOLVED": "A ticket can be rated only after it is resolved.",
+    "EMAIL_ALREADY_REGISTERED": "An account with this email address already exists.",
+    "CANNOT_MODIFY_SELF": "You cannot change the role or status of your own account.",
+    "RATE_LIMITED": "Too many attempts. Try again in a few minutes.",
+    "INTERNAL_ERROR": "An unexpected error occurred. Please try again."
+  },
+  "apiDocs": {
+    "title": "API documentation",
+    "description": "All application API calls (OpenAPI 3). For calls that require sign-in, click “Authorize” and enter an access token (JWT)."
   }
 }
