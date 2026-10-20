@@ -8,3 +8,8 @@
 import "@/lib/openapi/routes/system";
 import "@/lib/openapi/routes/auth";
 import "@/lib/openapi/routes/profile";
+import "@/lib/openapi/routes/tickets";
+import "@/lib/openapi/routes/comments";
+import "@/lib/openapi/routes/ratings";
+import "@/lib/openapi/routes/categories";
+import "@/lib/openapi/routes/admin";
