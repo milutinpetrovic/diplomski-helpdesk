@@ -12,15 +12,15 @@ Spisak svih API ruta i stranica aplikacije. Ova tabela je izvor za Swagger (Open
 - Greška: `{ "error": { "code": "TICKET_NOT_FOUND", "message": "...", "details": {...} } }`.
 - Uspešan odgovor: objekat direktno (bez omotača `data`), `201` za kreiranje, `204` za akcije bez tela.
 
-| HTTP status | Kada                         | Primer koda                                                                                                                                                       |
-| ----------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 400         | neispravan ulaz              | `VALIDATION_ERROR` (u `details.fields` greške po poljima)                                                                                                         |
-| 401         | nema sesije                  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                                          |
-| 403         | nema prava                   | `FORBIDDEN`, `ACCOUNT_DISABLED`, `NOT_ASSIGNED_AGENT`, `FORBIDDEN_INTERNAL_COMMENT`, `EMAIL_NOT_CONFIRMED`                                                        |
-| 404         | ne postoji ili nije vidljivo | `NOT_FOUND`, `TICKET_NOT_FOUND`                                                                                                                                   |
-| 409         | konflikt stanja              | `INVALID_STATUS_TRANSITION`, `TICKET_ALREADY_ASSIGNED`, `TICKET_CLOSED`, `ALREADY_RATED`, `TICKET_NOT_RESOLVED`, `EMAIL_ALREADY_REGISTERED`, `CANNOT_MODIFY_SELF` |
-| 429         | previše zahteva              | `RATE_LIMITED` (Faza A)                                                                                                                                           |
-| 500         | neočekivana greška           | `INTERNAL_ERROR`                                                                                                                                                  |
+| HTTP status | Kada                         | Primer koda                                                                                                                                                                             |
+| ----------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400         | neispravan ulaz              | `VALIDATION_ERROR` (u `details.fields` greške po poljima)                                                                                                                               |
+| 401         | nema sesije                  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                                                                |
+| 403         | nema prava                   | `FORBIDDEN`, `ACCOUNT_DISABLED`, `NOT_ASSIGNED_AGENT`, `FORBIDDEN_INTERNAL_COMMENT`, `EMAIL_NOT_CONFIRMED`                                                                              |
+| 404         | ne postoji ili nije vidljivo | `NOT_FOUND`, `TICKET_NOT_FOUND`                                                                                                                                                         |
+| 409         | konflikt stanja              | `INVALID_STATUS_TRANSITION`, `TICKET_ALREADY_ASSIGNED`, `ASSIGNEE_NOT_AGENT`, `TICKET_CLOSED`, `ALREADY_RATED`, `TICKET_NOT_RESOLVED`, `EMAIL_ALREADY_REGISTERED`, `CANNOT_MODIFY_SELF` |
+| 429         | previše zahteva              | `RATE_LIMITED` (Faza A)                                                                                                                                                                 |
+| 500         | neočekivana greška           | `INTERNAL_ERROR`                                                                                                                                                                        |
 
 Napomena: zahtev koji korisnik nema pravo da vidi vraća **404**, a ne 403, da se ne otkrije da postoji.
 

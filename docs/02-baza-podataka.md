@@ -135,7 +135,7 @@ Proširuje `auth.users` (Supabase Auth). Jedan red po nalogu, kreira ga triger `
 | Kolona                     | Tip         | Ograničenja / podrazumevano                  | Napomena                             |
 | -------------------------- | ----------- | -------------------------------------------- | ------------------------------------ |
 | `id`                       | uuid        | PK, FK → `auth.users(id)` ON DELETE CASCADE  | isti ID kao nalog                    |
-| `full_name`                | text        | NOT NULL, 2–100 karaktera                    | iz forme ili iz Google profila       |
+| `full_name`                | text        | NOT NULL, 1–100 karaktera                    | iz forme ili iz Google profila       |
 | `email`                    | text        | NOT NULL, UNIQUE                             | kopija iz `auth.users` radi pretrage |
 | `avatar_url`               | text        | NULL                                         | Google slika ili prazno              |
 | `role`                     | user_role   | NOT NULL, default `customer`                 | menja samo admin                     |
@@ -202,7 +202,7 @@ Indeks: `(ticket_id, created_at)`.
 | `new_value`  | jsonb          | NULL                           | npr. `{"status":"in_progress"}` |
 | `created_at` | timestamptz    | default `now()`                |                                 |
 
-Samo upis (INSERT) i čitanje — nikad UPDATE/DELETE. Upisuje ga servisni sloj u istoj transakciji (RPC funkciji) kao i promenu.
+Samo upis (INSERT) i čitanje — nikad UPDATE/DELETE. Upisuje ga RPC funkcija u istoj transakciji kao i promenu. `created_at` koristi `clock_timestamp()` (a ne `now()`), da stavke iz iste transakcije imaju ispravan redosled.
 
 ### 3.6 `ticket_ratings` — ocene zadovoljstva (CSAT)
 
@@ -283,15 +283,24 @@ Pravila vremenskih oznaka: ulazak u `resolved` postavlja `resolved_at = now()`; 
 
 ## 5. Trigeri i funkcije u bazi
 
-| Naziv                        | Tip                                        | Šta radi                                                                                                                              |
-| ---------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `handle_new_user()`          | triger AFTER INSERT na `auth.users`        | Kreira red u `profiles` sa ulogom `customer`; ime uzima iz `raw_user_meta_data.full_name` ili `name` (Google), sliku iz `avatar_url`. |
-| `set_updated_at()`           | triger BEFORE UPDATE                       | Postavlja `updated_at = now()` na `profiles`, `tickets`, `ticket_comments`.                                                           |
-| `current_user_role()`        | SQL funkcija, `security definer`, `stable` | Vraća ulogu prijavljenog korisnika (`auth.uid()`); koriste je RLS politike. Mora da ima `set search_path = public`.                   |
-| `is_staff()`                 | SQL funkcija                               | `current_user_role() in ('agent','admin')` — skraćenica za politike.                                                                  |
-| `prevent_role_self_change()` | triger BEFORE UPDATE na `profiles`         | Sprečava da korisnik sam sebi promeni `role` ili `is_active` (dodatna zaštita uz RLS).                                                |
+Interne pomoćne funkcije su u šemi `private` (nije izložena kroz Supabase API); funkcije koje koriste RLS politike su u `public`. Sve funkcije imaju `set search_path = ''` i pune nazive (`public.tickets`), da se ne mogu prevariti lažnom tabelom u drugoj šemi.
 
-**Zašto se poslovna logika (prelazi statusa, istorija, obaveštenja) ne radi u trigerima:** da bi bila vidljiva, testabilna i dokumentovana u servisnom sloju (TypeScript), što je lakše objasniti u radu. Baza garantuje bezbednost (RLS, CHECK, FK), a servis garantuje poslovna pravila. Gde je potrebna atomičnost (promena statusa + istorija + obaveštenja), servis poziva jednu RPC funkciju (`change_ticket_status`, `assign_ticket`, `add_comment`) koja radi sve u jednoj transakciji — tačan spisak u `07-uputstvo-za-implementaciju.md`.
+| Naziv                                             | Tip                                          | Šta radi                                                                                                                                                                                  |
+| ------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `private.handle_new_user()`                       | triger AFTER INSERT na `auth.users`          | Kreira red u `profiles` sa ulogom `customer`; ime iz `full_name` (forma) ili `name` (Google), inače deo emaila pre `@`; slika iz `avatar_url`; jezik iz `locale` (`en`/`sr`, inače `sr`). |
+| `private.sync_profile_email()`                    | triger AFTER UPDATE OF email na `auth.users` | Promenu emaila prepisuje u `profiles.email`.                                                                                                                                              |
+| `private.set_updated_at()`                        | triger BEFORE UPDATE                         | Postavlja `updated_at = now()` na `profiles`, `tickets`, `ticket_comments`.                                                                                                               |
+| `private.prevent_role_self_change()`              | triger BEFORE UPDATE na `profiles`           | Zabranjuje (`FORBIDDEN`) da prijavljen korisnik sam promeni `role`, `is_active` ili `email` (dodatna zaštita uz prava na kolone).                                                         |
+| `current_user_role()`                             | SQL, `security definer`, `stable`            | Uloga prijavljenog korisnika; `null` ako nije prijavljen ili je deaktiviran.                                                                                                              |
+| `is_staff()`, `is_admin()`                        | SQL                                          | Skraćenice za politike: agent/admin, odnosno admin (aktivan).                                                                                                                             |
+| `can_view_ticket(id)`                             | SQL, `security definer`                      | Da li prijavljeni sme da vidi zahtev (vlasnik ili tim).                                                                                                                                   |
+| `can_access_realtime_topic(topic)`                | PL/pgSQL, `security definer`                 | Dozvola za privatne real-time kanale (sekcija 7).                                                                                                                                         |
+| `profile_summaries`                               | pogled (view)                                | `id, full_name, avatar_url, role` bez emaila: korisnik vidi sebe i tim podrške (ime agenta uz komentar), tim vidi sve.                                                                    |
+| `private.is_status_transition_allowed(...)`       | SQL, `immutable`                             | Tabela prelaza statusa iz sekcije 4.                                                                                                                                                      |
+| `private.apply_status_change(...)`                | PL/pgSQL                                     | Promena statusa + vremenske oznake + istorija (+ obaveštenja).                                                                                                                            |
+| `private.notify(...)`, `private.log_history(...)` | SQL                                          | Upis obaveštenja (preskače autora događaja i neaktivne) i stavke istorije.                                                                                                                |
+
+**Zašto se poslovna logika (prelazi statusa, istorija, obaveštenja) ne radi u trigerima:** da bi bila vidljiva, testabilna i dokumentovana u servisnom sloju (TypeScript), što je lakše objasniti u radu. Baza garantuje bezbednost (RLS, CHECK, FK), a servis garantuje poslovna pravila. Gde je potrebna atomičnost (promena statusa + istorija + obaveštenja), servis poziva jednu RPC funkciju koja radi sve u jednoj transakciji — spisak u `07-uputstvo-za-implementaciju.md` (Faza 2). Isto pravilo prelaza postoji i u TypeScript-u (`StatusTransitionPolicy`) da bi UI znao koja dugmad da prikaže; baza je poslednja linija odbrane.
 
 ## 6. Funkcije za analitiku (RPC)
 
@@ -311,28 +320,32 @@ Za agentov dashboard postoji `agent_dashboard_stats()` koja vraća samo podatke 
 - U publikaciju `supabase_realtime` se dodaje **samo** tabela `notifications`.
 - Klijent se pretplaćuje na `postgres_changes` (INSERT) sa filterom `recipient_id=eq.<moj id>`. Supabase Realtime poštuje RLS, pa korisnik dobija samo svoja obaveštenja.
 - Za osvežavanje otvorene stranice zahteva (novi komentar, promena statusa) koristi se **privatni broadcast kanal** `ticket:<id>` sa Realtime Authorization politikom koja dozvoljava pretplatu samo onima koji smeju da vide taj zahtev. Payload je samo `{ ticketId, event }`; klijent posle toga ponovo učitava podatke kroz API.
+- Kanali i ko sme na njih (funkcija `can_access_realtime_topic`, politike nad `realtime.messages` za čitanje i slanje): `ticket:<id>` vlasnik i tim, `staff` samo agent/admin, `user:<id>` samo taj korisnik.
 - Sve ovo je sakriveno iza `RealtimeProvider` interfejsa (vidi `03-dijagram-klasa.md`).
 
 ## 8. RLS matrica (ko šta sme u bazi)
 
-`own` = red pripada prijavljenom korisniku; `staff` = agent ili admin.
+`own` = red pripada prijavljenom korisniku; `staff` = agent ili admin; „RPC" = samo kroz RPC funkciju (`security definer`), koja sama proverava ulogu i pristup — direktan upis u tabelu nije dozvoljen (uloga `authenticated` nema pravo INSERT/UPDATE nad tom tabelom).
 
-| Tabela            | SELECT                                                   | INSERT                                                                         | UPDATE                                                               | DELETE                              |
-| ----------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------- |
-| `profiles`        | svoj red; staff vidi sve                                 | samo triger                                                                    | svoj red (`full_name`, `avatar_url`, `locale`); admin sve            | niko (deaktivacija umesto brisanja) |
-| `categories`      | svi prijavljeni (aktivne); admin sve                     | admin                                                                          | admin                                                                | niko (deaktivacija)                 |
-| `tickets`         | vlasnik svoje; staff sve                                 | korisnik, `created_by = auth.uid()`, `status = open`, `assigned_to is null`    | samo kroz RPC funkcije (direktan UPDATE zabranjen svima osim admina) | niko                                |
-| `ticket_comments` | vlasnik zahteva: javne komentare svog zahteva; staff sve | autor = `auth.uid()`, ima pristup zahtevu; korisnik samo `is_internal = false` | autor, u roku od 15 min (opciono)                                    | niko                                |
-| `ticket_history`  | vlasnik zahteva: stavke bez internih detalja; staff sve  | samo RPC funkcije                                                              | niko                                                                 | niko                                |
-| `ticket_ratings`  | vlasnik i staff                                          | vlasnik zahteva, status `resolved`/`closed`                                    | niko                                                                 | niko                                |
-| `notifications`   | `recipient_id = auth.uid()`                              | samo RPC funkcije                                                              | primalac (samo `is_read`)                                            | primalac                            |
-| `attachments`     | kao komentar/zahtev uz koji ide                          | autor sa pristupom zahtevu                                                     | niko                                                                 | autor ili admin                     |
+| Tabela            | SELECT                                                               | INSERT                                                  | UPDATE                                                                                                         | DELETE                              |
+| ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `profiles`        | svoj red; staff vidi sve                                             | samo triger                                             | svoj red, samo kolone `full_name`, `avatar_url`, `locale`; uloga i aktivnost samo kroz RPC `admin_update_user` | niko (deaktivacija umesto brisanja) |
+| `categories`      | svi prijavljeni (aktivne); admin sve                                 | admin                                                   | admin                                                                                                          | niko (deaktivacija)                 |
+| `tickets`         | vlasnik svoje; staff sve                                             | RPC `create_ticket` (samo `customer`)                   | RPC (`update_ticket`, `assign_ticket`, `change_ticket_status`)                                                 | niko                                |
+| `ticket_comments` | vlasnik zahteva: javne komentare svog zahteva; staff sve             | RPC `add_comment` (korisnik samo `is_internal = false`) | niko                                                                                                           | niko                                |
+| `ticket_history`  | ko vidi zahtev (vlasnik i staff); istorija ne sadrži tekst komentara | RPC                                                     | niko                                                                                                           | niko                                |
+| `ticket_ratings`  | ko vidi zahtev (vlasnik i staff)                                     | RPC `rate_ticket` (vlasnik, status `resolved`/`closed`) | niko                                                                                                           | niko                                |
+| `notifications`   | `recipient_id = auth.uid()`                                          | RPC                                                     | primalac (samo kolona `is_read`)                                                                               | primalac                            |
+| `attachments`     | kao komentar/zahtev uz koji ide                                      | autor sa pristupom zahtevu                              | niko                                                                                                           | autor ili admin                     |
 
-Neaktivan nalog (`is_active = false`): sve politike dodatno zahtevaju da je prijavljeni korisnik aktivan (kroz `current_user_role()` koja vraća `null` za neaktivne).
+Neaktivan nalog (`is_active = false`): sve politike dodatno zahtevaju da je prijavljeni korisnik aktivan (kroz `current_user_role()` koja vraća `null` za neaktivne), a RPC funkcije vraćaju `ACCOUNT_DISABLED`. Gost (`anon`) nema nikakva prava ni nad jednom tabelom.
+
+Izmena komentara (autor, u roku od 15 min) je odložena kao moguće proširenje.
 
 ## 9. Demo podaci (`supabase/seed.sql` + `scripts/seed-demo.ts`)
 
-- 1 admin, 4 agenta, 20 korisnika; lozinke i emailovi demo naloga u README-u.
+- `supabase/seed.sql` (Faza 2, lokalni razvoj i testovi): 5 kategorija i 5 naloga sa fiksnim ID-jevima — `admin@helpdesk.test`, `agent@helpdesk.test`, `agent2@helpdesk.test`, `ana@helpdesk.test`, `marko@helpdesk.test`, lozinka `Lozinka123!` (README).
+- `scripts/seed-demo.ts` (Faza 8): 1 admin, 4 agenta, 20 korisnika.
 - 5 kategorija (sr + en nazivi).
 - ~150 zahteva raspoređenih kroz poslednjih 6 meseci, sa realnim odnosom statusa (većina `closed`/`resolved`, deo otvorenih), različitim prioritetima i agentima.
 - Za svaki zahtev 1–8 komentara (deo internih), konzistentna istorija i vremenske oznake (`first_response_at` posle `created_at`, `resolved_at` posle toga).

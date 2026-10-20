@@ -60,33 +60,34 @@ Kriterijumi završetka:
 
 Migracije (jedna tema po fajlu, `supabase migration new <naziv>`):
 
-| Redosled | Migracija                | Sadržaj                                                                                               |
-| -------- | ------------------------ | ----------------------------------------------------------------------------------------------------- |
-| 1        | `enums`                  | `user_role`, `ticket_status`, `ticket_priority`, `history_action`, `notification_type`                |
-| 2        | `profiles`               | tabela, triger `handle_new_user`, `set_updated_at`, `prevent_role_self_change`                        |
-| 3        | `helpers`                | `current_user_role()`, `is_staff()` (`security definer`, `set search_path = public`)                  |
-| 4        | `categories`             | tabela + RLS                                                                                          |
-| 5        | `tickets`                | tabela, indeksi, GIN za pretragu + RLS                                                                |
-| 6        | `comments_history`       | `ticket_comments`, `ticket_history` + RLS                                                             |
-| 7        | `ratings_notifications`  | `ticket_ratings`, `notifications` + RLS + dodavanje `notifications` u publikaciju `supabase_realtime` |
-| 8        | `rpc_tickets`            | RPC funkcije iz tabele ispod                                                                          |
-| 9        | `rpc_analytics`          | `analytics_*`, `agent_dashboard_stats`                                                                |
-| 10       | `realtime_authorization` | politike na `realtime.messages` za privatne kanale `ticket:<id>` i `staff`                            |
+| Redosled | Migracija                | Sadržaj                                                                                                       |
+| -------- | ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| 1        | `enums`                  | `user_role`, `ticket_status`, `ticket_priority`, `history_action`, `notification_type`                        |
+| 2        | `profiles`               | tabela, triger `handle_new_user`, `set_updated_at`, `prevent_role_self_change`                                |
+| 3        | `helpers`                | `current_user_role()`, `is_staff()`, `is_admin()`, RLS za `profiles`, pogled `profile_summaries`              |
+| 4        | `categories`             | tabela + RLS                                                                                                  |
+| 5        | `tickets`                | tabela, indeksi, GIN za pretragu + RLS                                                                        |
+| 6        | `comments_history`       | `ticket_comments`, `ticket_history` + RLS                                                                     |
+| 7        | `ratings_notifications`  | `ticket_ratings`, `notifications` + RLS + dodavanje `notifications` u publikaciju `supabase_realtime`         |
+| 8        | `rpc_tickets`            | RPC funkcije iz tabele ispod                                                                                  |
+| 9        | `realtime_authorization` | `can_access_realtime_topic()` + politike na `realtime.messages` za kanale `ticket:<id>`, `staff`, `user:<id>` |
+| —        | `rpc_analytics`          | `analytics_*`, `agent_dashboard_stats` — **pomereno u Fazu 8** (pravi se zajedno sa stranicom analitike)      |
 
-RPC funkcije (sve `security invoker` osim gde je navedeno, sve u jednoj transakciji, sve proveravaju ulogu i pristup same — ne veruju klijentu):
+RPC funkcije (sve `security definer` sa `set search_path = ''`, sve u jednoj transakciji, sve na početku same proveravaju `auth.uid()`, ulogu i pristup — ne veruju klijentu). Greške: `raise exception using message = '<KOD>', errcode = 'P0001'`, gde je `<KOD>` kod iz `06-api-i-stranice.md`:
 
-| Funkcija               | Parametri                                           | Radi                                                                                                                                           |
-| ---------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `create_ticket`        | `p_title, p_description, p_category_id, p_priority` | INSERT ticket + history `created` + notifications svim aktivnim staff korisnicima. Vraća ticket.                                               |
-| `add_comment`          | `p_ticket_id, p_body, p_is_internal`                | Provere (pristup, closed, internal samo staff); INSERT komentar; `first_response_at`; auto `waiting_on_customer → in_progress`; notifications. |
-| `assign_ticket`        | `p_ticket_id, p_assignee_id`                        | Provere; UPDATE `assigned_to`; `open → in_progress`; history; notifications.                                                                   |
-| `change_ticket_status` | `p_ticket_id, p_new_status`                         | Provera prelaza po istoj tabeli kao `StatusTransitionPolicy`; UPDATE status i vremena; history; notification.                                  |
-| `rate_ticket`          | `p_ticket_id, p_score, p_comment`                   | Provere; INSERT rating; history; notification agentu.                                                                                          |
-| `admin_update_user`    | `p_user_id, p_role, p_is_active`                    | Samo admin, ne sebe; pri oduzimanju staff uloge oslobađa dodeljene otvorene zahteve (history `unassigned`).                                    |
+| Funkcija               | Parametri                                                            | Radi                                                                                                                                                                                                                                           |
+| ---------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `create_ticket`        | `p_title, p_description, p_category_id, p_priority`                  | INSERT ticket + history `created` + notifications svim aktivnim staff korisnicima. Vraća ticket.                                                                                                                                               |
+| `add_comment`          | `p_ticket_id, p_body, p_is_internal`                                 | Provere (pristup, closed, internal samo staff); INSERT komentar; `first_response_at`; auto `waiting_on_customer → in_progress`; notifications.                                                                                                 |
+| `update_ticket`        | `p_ticket_id, p_title?, p_description?, p_category_id?, p_priority?` | Korisnik (vlasnik): samo naslov/opis dok je `open`; agent: samo dodeljen zahtev; admin: sve; zatvoren se ne menja. History `updated` / `priority_changed` / `category_changed`.                                                                |
+| `assign_ticket`        | `p_ticket_id, p_assignee_id?`                                        | Agent samo sebi i samo nedodeljen (`TICKET_ALREADY_ASSIGNED`); admin bilo kom aktivnom članu tima (`ASSIGNEE_NOT_AGENT`) ili oslobađa (bez `p_assignee_id`). `open → in_progress`; oslobađanje zahteva u radu → `open`; history; notification. |
+| `change_ticket_status` | `p_ticket_id, p_new_status`                                          | Provera prelaza po istoj tabeli kao `StatusTransitionPolicy`; UPDATE status i vremena; history; notification.                                                                                                                                  |
+| `rate_ticket`          | `p_ticket_id, p_score, p_comment`                                    | Provere; INSERT rating; history; notification agentu.                                                                                                                                                                                          |
+| `admin_update_user`    | `p_user_id, p_role, p_is_active`                                     | Samo admin, ne sebe; pri oduzimanju staff uloge oslobađa dodeljene otvorene zahteve (history `unassigned`).                                                                                                                                    |
 
-Napomena: RPC funkcije koje upisuju obaveštenja za **druge** korisnike moraju biti `security definer` (jer RLS ne dozvoljava INSERT u tuđa obaveštenja), uz eksplicitnu proveru `auth.uid()` i uloge na početku funkcije i `set search_path = public`.
+Napomena: sve su `security definer` jer upisuju u tabele u koje uloga `authenticated` nema pravo upisa (npr. tuđa obaveštenja, istorija); zato je provera `auth.uid()` i uloge na početku svake funkcije obavezna.
 
-`supabase/seed.sql`: kategorije + jedan admin. `scripts/seed-demo.ts`: realni demo podaci (vidi `02-baza-podataka.md`, sekcija 9).
+`supabase/seed.sql`: kategorije + demo nalozi za svaku ulogu (admin, 2 agenta, 2 korisnika). `scripts/seed-demo.ts`: realni demo podaci (vidi `02-baza-podataka.md`, sekcija 9).
 
 Kriterijumi završetka:
 
