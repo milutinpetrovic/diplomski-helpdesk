@@ -12,11 +12,13 @@ import { GeistSans } from "geist/font/sans";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 
+import { Toaster } from "@/components/ui/sonner";
+
 import "./globals.css";
 
 /**
  * Dozvoljava da se stranice iscrtavaju na serveru za svaki zahtev (blokirajuće).
- * Razlog: jezik se čita iz kolačića (a od Faze 4 i sesija korisnika), što Next.js
+ * Razlog: jezik i sesija korisnika se čitaju iz kolačića, što Next.js
  * ne može unapred da pripremi kao statičku stranicu. Uz uključene Cache Components
  * (next.config.ts) bez ovoga build prijavljuje grešku. Pojedinačni podaci koji su
  * isti za sve korisnike (npr. kategorije) i dalje mogu da se keširaju sa "use cache".
@@ -53,6 +55,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         {/* Provajder prenosi jezik i prevode sa servera klijentskim komponentama. */}
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        {/* Mesto za kratke poruke (toast), npr. „Profil je sačuvan“. */}
+        <Toaster position="top-center" richColors closeButton />
       </body>
     </html>
   );

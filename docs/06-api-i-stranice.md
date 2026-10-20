@@ -14,7 +14,7 @@ Spisak svih API ruta i stranica aplikacije. Ova tabela je izvor za Swagger (Open
 
 | HTTP status | Kada                         | Primer koda                                                                                                                                                                             |
 | ----------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 400         | neispravan ulaz              | `VALIDATION_ERROR` (u `details.fields` greške po poljima)                                                                                                                               |
+| 400         | neispravan ulaz              | `VALIDATION_ERROR` (u `details.fields` greške po poljima), `AUTH_CALLBACK_FAILED`                                                                                                       |
 | 401         | nema sesije                  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                                                                |
 | 403         | nema prava                   | `FORBIDDEN`, `ACCOUNT_DISABLED`, `NOT_ASSIGNED_AGENT`, `FORBIDDEN_INTERNAL_COMMENT`, `EMAIL_NOT_CONFIRMED`                                                                              |
 | 404         | ne postoji ili nije vidljivo | `NOT_FOUND`, `TICKET_NOT_FOUND`                                                                                                                                                         |
@@ -30,15 +30,23 @@ Legenda uloga: **G** gost, **C** customer (korisnik), **A** agent, **AD** admin.
 
 ### Auth (tag `Auth`)
 
-| Metod i putanja                  | Uloge           | Telo / parametri                | Odgovor                                  | UC           |
-| -------------------------------- | --------------- | ------------------------------- | ---------------------------------------- | ------------ |
-| `POST /api/auth/register`        | G               | `{ fullName, email, password }` | `201`                                    | UC-01        |
-| `POST /api/auth/login`           | G               | `{ email, password }`           | `200 { profile }` + kolačić              | UC-02        |
-| `POST /api/auth/logout`          | C A AD          | —                               | `204`                                    | UC-05        |
-| `GET /api/auth/google`           | G               | `?next=/dashboard`              | `302` na Google                          | UC-03        |
-| `GET /api/auth/callback`         | G               | `?code=...&next=`               | `302` na `next` (potvrda emaila i OAuth) | UC-01, UC-03 |
-| `POST /api/auth/password/forgot` | G               | `{ email }`                     | `204` (uvek, i ako email ne postoji)     | UC-04        |
-| `POST /api/auth/password/reset`  | sesija iz linka | `{ password }`                  | `204`                                    | UC-04        |
+| Metod i putanja                  | Uloge           | Telo / parametri                       | Odgovor                                  | UC                  |
+| -------------------------------- | --------------- | -------------------------------------- | ---------------------------------------- | ------------------- |
+| `POST /api/auth/register`        | G               | `{ fullName, email, password }`        | `201`                                    | UC-01               |
+| `POST /api/auth/login`           | G               | `{ email, password }`                  | `200 { profile, session }` + kolačić     | UC-02               |
+| `POST /api/auth/logout`          | C A AD          | —                                      | `204`                                    | UC-05               |
+| `GET /api/auth/google`           | G               | `?next=/dashboard`                     | `302` na Google                          | UC-03               |
+| `GET /api/auth/callback`         | G               | `?code` ili `?token_hash&type`, `next` | `302` na `next`; greška: `/login?error=` | UC-01, UC-03, UC-04 |
+| `POST /api/auth/password/forgot` | G               | `{ email }`                            | `204` (uvek, i ako email ne postoji)     | UC-04               |
+| `POST /api/auth/password/reset`  | sesija iz linka | `{ password }`                         | `204`                                    | UC-04               |
+
+Napomene (Faza 4):
+
+- `session` u odgovoru prijave je `{ accessToken, expiresAt }`; `accessToken` se koristi za „Authorize“ u Swagger-u i u Postman-u (isti token je i u kolačiću).
+- Linkovi iz emailova (`supabase/templates/`) vode na `/api/auth/callback?token_hash=...&type=email|recovery`, pa rade i kad se email otvori na drugom uređaju; Google prijava vraća `?code=...` (PKCE).
+- `next` sme biti samo putanja u aplikaciji (`/...`); sve ostalo postaje `/dashboard` (zaštita od open redirect napada).
+- `POST /api/auth/register` za email potvrđenog naloga vraća `409 EMAIL_ALREADY_REGISTERED`; `POST /api/auth/password/forgot` uvek vraća `204` (osim `429`).
+- `POST /api/auth/password/reset` koristi i stranica `/profile` za promenu lozinke prijavljenog korisnika.
 
 ### Profil (tag `Profile`)
 

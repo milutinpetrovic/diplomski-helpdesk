@@ -10,6 +10,10 @@
     "srFull": "Serbian",
     "enFull": "English"
   },
+  "common": {
+    "appName": "Technical Support",
+    "or": "or"
+  },
   "home": {
     "title": "Technical Support",
     "subtitle": "Report a problem, track its status and get an answer from the support team in one place.",
@@ -27,10 +31,107 @@
         "description": "The support team takes the request, talks to you and resolves it."
       }
     },
-    "comingSoon": "Sign in and registration will be available in the next development phase."
+    "login": "Sign in",
+    "register": "Sign up"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "description": "Sign in to report a problem and track your requests.",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up",
+      "forgotLink": "Forgot your password?"
+    },
+    "register": {
+      "title": "Sign up",
+      "description": "Create an account to report a problem to the support team.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Sign in",
+      "successTitle": "Check your email",
+      "successText": "We sent a confirmation link to {email}. Click it to activate your account."
+    },
+    "forgot": {
+      "title": "Forgot password",
+      "description": "Enter your account email and we will send you a link to set a new password.",
+      "submit": "Send link",
+      "successText": "If an account with {email} exists, we sent a link to set a new password. Check your inbox.",
+      "backToLogin": "Back to sign in"
+    },
+    "reset": {
+      "title": "New password",
+      "description": "Enter a new password for your account.",
+      "submit": "Save password",
+      "success": "Your password has been changed."
+    },
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Repeat password"
+    },
+    "passwordHint": "At least 8 characters, with at least one letter and one number.",
+    "google": "Continue with Google"
+  },
+  "validation": {
+    "invalid": "The value is not valid.",
+    "required": "This field is required.",
+    "fullNameLength": "Name must be between 2 and 100 characters.",
+    "emailInvalid": "Enter a valid email address.",
+    "passwordWeak": "Password must have at least 8 characters, with at least one letter and one number.",
+    "passwordTooLong": "Password can have at most 72 characters.",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordSame": "The new password must be different from the old one."
+  },
+  "nav": {
+    "label": "Main menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "skipToContent": "Skip to content",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "analytics": "Analytics",
+    "users": "Users",
+    "categories": "Categories",
+    "apiDocs": "API documentation",
+    "logout": "Sign out"
+  },
+  "roles": {
+    "customer": "Customer",
+    "agent": "Agent",
+    "admin": "Administrator"
+  },
+  "profile": {
+    "title": "My profile",
+    "description": "Personal details and account settings.",
+    "detailsTitle": "Personal details",
+    "role": "Role",
+    "language": "Interface language",
+    "save": "Save changes",
+    "saved": "Your profile has been saved.",
+    "passwordTitle": "Change password",
+    "passwordDescription": "After the change, sign in with your new password.",
+    "passwordSave": "Change password",
+    "passwordSaved": "Your password has been changed.",
+    "googleAccount": "You sign in with Google, so this account has no password in the app."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome, {name}!"
+  },
+  "placeholder": {
+    "text": "This page is under construction and will be available soon."
+  },
+  "forbidden": {
+    "title": "Access denied",
+    "text": "This page is available to administrators only.",
+    "back": "Back to the dashboard"
   },
   "errors": {
     "VALIDATION_ERROR": "The data is not valid. Check the highlighted fields.",
+    "AUTH_CALLBACK_FAILED": "Sign-in failed or the link has expired. Please try again.",
     "UNAUTHENTICATED": "You need to sign in.",
     "INVALID_CREDENTIALS": "Wrong email or password.",
     "FORBIDDEN": "You are not allowed to perform this action.",

@@ -157,11 +157,14 @@ max_indexes = 5
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
+# Lokalno aplikaciju otvarati na http://localhost:3000 (isto kao NEXT_PUBLIC_SITE_URL u .env.local),
+# jer se kolačići za Google prijavu vezuju za tačnu adresu.
+site_url = "http://localhost:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# Adrese na koje Supabase sme da vrati korisnika posle prijave (callback ruta aplikacije).
+additional_redirect_urls = ["http://localhost:3000/**", "http://127.0.0.1:3000/**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -197,7 +200,8 @@ password_requirements = ""
 
 [auth.rate_limit]
 # Number of emails that can be sent per hour. Requires auth.email.smtp to be enabled.
-email_sent = 2
+# Povećano (sa 2) samo za lokalni Supabase: integracioni testovi šalju emailove za potvrdu i reset.
+email_sent = 100
 # Number of SMS messages that can be sent per hour. Requires auth.sms to be enabled.
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
@@ -226,7 +230,9 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+# Uključeno (FZ-1): nalog se aktivira klikom na link iz emaila. Lokalno se emailovi
+# vide u Mailpit-u (http://127.0.0.1:54324), koji pokreće `supabase start`.
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -250,6 +256,17 @@ otp_expiry = 3600
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
+
+# Naši šabloni emailova (srpski i engleski). Link vodi na /api/auth/callback sa
+# token_hash, pa radi i kad se email otvori na drugom uređaju ili pregledaču.
+# U Supabase cloud-u isti tekst se upisuje u Authentication -> Email Templates.
+[auth.email.template.confirmation]
+subject = "Potvrdite nalog / Confirm your account"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Nova lozinka / Reset your password"
+content_path = "./supabase/templates/recovery.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
@@ -335,6 +352,20 @@ url = ""
 # If enabled, the nonce check will be skipped. Required for local sign in with Google auth.
 skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
+email_optional = false
+
+# Prijava Google nalogom (FZ-1, UC-03). Lokalno je isključena dok se ne naprave Google
+# ključevi (README, „Google prijava“). Za uključivanje: enabled = true i promenljive
+# SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID i SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET u supabase/.env.
+# Ključevi se NIKAD ne upisuju direktno ovde (fajl je u git-u).
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = ""
+url = ""
+# Potrebno za lokalnu Google prijavu (vidi komentar Supabase-a kod [auth.external.apple]).
+skip_nonce_check = true
 email_optional = false
 
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.

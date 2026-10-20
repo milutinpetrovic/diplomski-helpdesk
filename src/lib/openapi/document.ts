@@ -25,13 +25,20 @@ export function generateOpenApiDocument() {
     openapi: "3.0.3",
     info: {
       title: "Tehnička podrška — API",
-      version: "0.3.0",
+      version: "0.4.0",
       description:
         "API veb aplikacije za tehničku podršku (diplomski rad, Milutin Petrović 3407). " +
         "Greške imaju jedinstven oblik { error: { code, message, details } }; " +
         "kod greške je stabilan i interfejs ga prevodi.",
     },
     servers: [{ url: "/" }],
-    tags: [{ name: "System", description: "Sistemske rute (OpenAPI specifikacija)." }],
+    tags: [
+      {
+        name: "Auth",
+        description: "Registracija, prijava (email i Google), odjava i reset lozinke.",
+      },
+      { name: "Profile", description: "Profil prijavljenog korisnika." },
+      { name: "System", description: "Sistemske rute (OpenAPI specifikacija)." },
+    ],
   });
 }

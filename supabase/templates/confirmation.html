@@ -1,0 +1,26 @@
+<!--
+  Fajl: supabase/templates/confirmation.html
+  Svrha: email za potvrdu naloga posle registracije (FZ-1, UC-01), na srpskom i engleskom.
+  Link vodi na /api/auth/callback?token_hash=...&type=email; ruta proverava token,
+  prijavljuje korisnika i vodi ga na /dashboard.
+  Koristi ga: Supabase Auth (supabase/config.toml, [auth.email.template.confirmation]);
+  u Supabase cloud-u isti tekst se upisuje u Authentication -> Email Templates -> Confirm signup.
+  {{ .SiteURL }} i {{ .TokenHash }} popunjava Supabase.
+-->
+<h2>Potvrdite nalog</h2>
+<p>Hvala na registraciji. Kliknite na link ispod da biste aktivirali nalog za tehničku podršku:</p>
+<p>
+  <a href="{{ .SiteURL }}/api/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/dashboard"
+    >Potvrdi nalog</a
+  >
+</p>
+<p>Ako se niste vi registrovali, zanemarite ovaj email.</p>
+<hr />
+<h2>Confirm your account</h2>
+<p>Thanks for signing up. Click the link below to activate your technical support account:</p>
+<p>
+  <a href="{{ .SiteURL }}/api/auth/callback?token_hash={{ .TokenHash }}&type=email&next=/dashboard"
+    >Confirm account</a
+  >
+</p>
+<p>If you did not sign up, you can ignore this email.</p>

@@ -39,7 +39,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       # Pokretanje samo servisa koji su potrebni testovima (baza, Auth, API, Realtime).
-      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,storage-api,mailpit
+      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,storage-api
       # Adresa i ključevi lokalnog Supabase-a idu u env za sledeće korake.
       - run: pnpm exec supabase status -o env | sed 's/"//g' >> "$GITHUB_ENV"
       # Generisani tipovi moraju odgovarati migracijama (ako ne, pokreni pnpm db:types).
