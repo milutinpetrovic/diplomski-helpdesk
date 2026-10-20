@@ -68,15 +68,27 @@ describe("prijavljen korisnik", () => {
 });
 
 describe("meni po ulozi", () => {
-  it("korisnik i agent vide kontrolni panel i profil, bez admin stavki", () => {
-    for (const role of ["customer", "agent"] as const) {
-      expect(getNavItems(role).map((item) => item.key)).toEqual(["dashboard", "profile"]);
-    }
+  it("korisnik vidi svoje zahteve i novi zahtev, bez admin stavki", () => {
+    expect(getNavItems("customer").map((item) => item.key)).toEqual([
+      "dashboard",
+      "myTickets",
+      "newTicket",
+      "profile",
+    ]);
+  });
+
+  it("agent vidi zahteve, bez novog zahteva i admin stavki", () => {
+    expect(getNavItems("agent").map((item) => item.key)).toEqual([
+      "dashboard",
+      "tickets",
+      "profile",
+    ]);
   });
 
   it("admin vidi i analitiku, korisnike, kategorije i API dokumentaciju", () => {
     expect(getNavItems("admin").map((item) => item.key)).toEqual([
       "dashboard",
+      "tickets",
       "analytics",
       "users",
       "categories",
@@ -88,5 +100,13 @@ describe("meni po ulozi", () => {
   it("stavka je aktivna i na podstranici", () => {
     expect(isNavItemActive("/admin/users", "/admin/users/5")).toBe(true);
     expect(isNavItemActive("/admin/users", "/admin/categories")).toBe(false);
+  });
+
+  it("na /tickets/new je aktivan samo „Novi zahtev“, na /tickets/5 „Moji zahtevi“", () => {
+    const items = getNavItems("customer");
+    expect(isNavItemActive("/tickets/new", "/tickets/new", items)).toBe(true);
+    expect(isNavItemActive("/tickets", "/tickets/new", items)).toBe(false);
+    expect(isNavItemActive("/tickets", "/tickets/5", items)).toBe(true);
+    expect(isNavItemActive("/tickets", "/tickets", items)).toBe(true);
   });
 });

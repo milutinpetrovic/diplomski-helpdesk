@@ -101,7 +101,10 @@
     "users": "Korisnici",
     "categories": "Kategorije",
     "apiDocs": "API dokumentacija",
-    "logout": "Odjava"
+    "logout": "Odjava",
+    "tickets": "Zahtevi",
+    "myTickets": "Moji zahtevi",
+    "newTicket": "Novi zahtev"
   },
   "roles": {
     "customer": "Korisnik",
@@ -132,7 +135,168 @@
   "forbidden": {
     "title": "Nemate pristup",
     "text": "Ova stranica je dostupna samo administratorima.",
-    "back": "Nazad na kontrolni panel"
+    "back": "Nazad na kontrolni panel",
+    "customerOnly": "Nove zahteve prijavljuju korisnici. Kao član tima podrške, zahteve obrađujete na stranici „Zahtevi“.",
+    "toTickets": "Na zahteve"
+  },
+  "ticketStatus": {
+    "open": "Otvoren",
+    "in_progress": "U obradi",
+    "waiting_on_customer": "Čeka korisnika",
+    "resolved": "Rešen",
+    "closed": "Zatvoren"
+  },
+  "ticketPriority": {
+    "low": "Nizak",
+    "medium": "Srednji",
+    "high": "Visok",
+    "urgent": "Hitan"
+  },
+  "tickets": {
+    "list": {
+      "titleCustomer": "Moji zahtevi",
+      "titleStaff": "Zahtevi",
+      "descriptionCustomer": "Zahtevi koje ste prijavili i njihov trenutni status.",
+      "descriptionStaff": "Svi zahtevi korisnika. Filtrirajte, pretražujte i preuzmite zahtev za obradu.",
+      "newTicket": "Novi zahtev",
+      "empty": "Nema zahteva koji odgovaraju filterima.",
+      "emptyCustomer": "Još niste prijavili nijedan zahtev.",
+      "total": "{total, plural, one {# zahtev} few {# zahteva} other {# zahteva}}",
+      "unassigned": "Nedodeljen",
+      "noCategory": "Bez kategorije",
+      "caption": "Lista zahteva"
+    },
+    "columns": {
+      "number": "Broj",
+      "title": "Naslov",
+      "status": "Status",
+      "priority": "Prioritet",
+      "category": "Kategorija",
+      "creator": "Podnosilac",
+      "assignee": "Dodeljen",
+      "updatedAt": "Poslednja izmena",
+      "createdAt": "Kreiran"
+    },
+    "filters": {
+      "label": "Filteri",
+      "search": "Pretraga",
+      "searchPlaceholder": "Naslov, opis ili #broj",
+      "searchSubmit": "Traži",
+      "all": "Svi",
+      "allCategories": "Sve kategorije",
+      "assigneeMe": "Dodeljeni meni",
+      "assigneeUnassigned": "Nedodeljeni",
+      "sort": "Sortiranje",
+      "reset": "Poništi filtere"
+    },
+    "sort": {
+      "newest": "Najnoviji prvo",
+      "oldest": "Najstariji prvo",
+      "recentlyUpdated": "Nedavno menjani",
+      "leastRecentlyUpdated": "Najduže nemenjani",
+      "priorityDesc": "Najhitniji prvo",
+      "priorityAsc": "Najmanje hitni prvo"
+    },
+    "pagination": {
+      "label": "Stranice",
+      "previous": "Prethodna",
+      "next": "Sledeća",
+      "status": "Stranica {page} od {pages}"
+    },
+    "new": {
+      "title": "Novi zahtev",
+      "description": "Opišite problem što preciznije. Tim podrške će vam odgovoriti u ovom zahtevu.",
+      "cardTitle": "Podaci o problemu",
+      "titleHint": "Kratko, npr. „Ne radi štampač u kancelariji 12“.",
+      "descriptionHint": "Šta se desilo, kada, i šta ste već probali.",
+      "categoryPlaceholder": "Izaberite kategoriju",
+      "submit": "Pošalji zahtev",
+      "created": "Zahtev #{number} je poslat."
+    },
+    "fields": {
+      "title": "Naslov",
+      "description": "Opis problema",
+      "category": "Kategorija",
+      "priority": "Prioritet"
+    },
+    "detail": {
+      "back": "Nazad na zahteve",
+      "details": "Podaci o zahtevu",
+      "description": "Opis",
+      "creator": "Podnosilac",
+      "assignee": "Dodeljen",
+      "category": "Kategorija",
+      "createdAt": "Kreiran",
+      "updatedAt": "Poslednja izmena",
+      "resolvedAt": "Rešen",
+      "closedAt": "Zatvoren",
+      "notFoundTitle": "Zahtev nije pronađen",
+      "notFoundText": "Zahtev ne postoji ili nemate pristup njemu."
+    },
+    "actions": {
+      "title": "Akcije",
+      "none": "Trenutno nema akcija koje možete da izvršite.",
+      "claim": "Preuzmi zahtev",
+      "claimed": "Zahtev je preuzet.",
+      "assignLabel": "Dodeli članu tima",
+      "assignNobody": "Nikome (oslobodi zahtev)",
+      "agentOption": "{name} ({count, plural, one {# otvoren} few {# otvorena} other {# otvorenih}})",
+      "assignSubmit": "Sačuvaj dodelu",
+      "assigned": "Dodela je sačuvana.",
+      "statusLabel": "Promena statusa",
+      "statusChanged": "Novi status: {status}.",
+      "resolvedHint": "Tim podrške je označio zahtev kao rešen. Potvrdite rešenje ili ga ponovo otvorite ako problem i dalje postoji.",
+      "cancelConfirm": "Da li sigurno želite da otkažete zahtev? Posle toga ga može ponovo otvoriti samo tim podrške.",
+      "cancelYes": "Da, otkaži",
+      "cancelNo": "Ne"
+    },
+    "transitions": {
+      "startWork": "Započni obradu",
+      "waitOnCustomer": "Čeka odgovor korisnika",
+      "resume": "Nastavi obradu",
+      "resolve": "Označi kao rešen",
+      "close": "Zatvori zahtev",
+      "cancel": "Otkaži zahtev",
+      "confirm": "Potvrdi rešenje",
+      "reopen": "Ponovo otvori"
+    },
+    "comments": {
+      "title": "Komentari",
+      "empty": "Još nema komentara.",
+      "internal": "Interna beleška",
+      "internalHint": "Vidi je samo tim podrške, korisnik je ne vidi.",
+      "label": "Novi komentar",
+      "placeholder": "Napišite odgovor…",
+      "submit": "Pošalji",
+      "added": "Komentar je dodat.",
+      "noteAdded": "Interna beleška je dodata.",
+      "unknownAuthor": "Nepoznat korisnik",
+      "closed": "Zahtev je zatvoren, pa se više ne može komentarisati."
+    },
+    "history": {
+      "title": "Istorija promena",
+      "empty": "Nema zabeleženih promena.",
+      "system": "Sistem",
+      "created": "Kreiranje zahteva",
+      "status_changed": "Promena statusa: {from} → {to}",
+      "assigned": "Dodela: {name}",
+      "unassigned": "Uklonjena dodela: {name}",
+      "priority_changed": "Promena prioriteta: {from} → {to}",
+      "category_changed": "Promena kategorije: {from} → {to}",
+      "updated": "Izmena naslova ili opisa",
+      "rated": "Ocena: {score} od 5",
+      "unknown": "nepoznato"
+    },
+    "rating": {
+      "title": "Ocena zadovoljstva",
+      "prompt": "Koliko ste zadovoljni rešenjem?",
+      "stars": "{count, plural, one {# zvezdica} few {# zvezdice} other {# zvezdica}}",
+      "comment": "Komentar (opciono)",
+      "submit": "Pošalji ocenu",
+      "thanks": "Hvala na oceni!",
+      "given": "Ocena korisnika",
+      "value": "{score} od 5"
+    }
   },
   "errors": {
     "VALIDATION_ERROR": "Podaci nisu ispravni. Proverite označena polja.",

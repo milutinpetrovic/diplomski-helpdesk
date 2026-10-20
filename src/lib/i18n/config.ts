@@ -18,6 +18,12 @@ export const defaultLocale: Locale = "sr";
 /** Naziv kolačića u kome se pamti izabrani jezik (isti naziv koristi next-intl). */
 export const LOCALE_COOKIE = "NEXT_LOCALE";
 
+/**
+ * Vremenska zona u kojoj se prikazuju datumi i vremena (tim podrške radi iz Srbije).
+ * Ista vrednost važi na serveru i u pregledaču (src/lib/i18n/request.ts).
+ */
+export const APP_TIME_ZONE = "Europe/Belgrade";
+
 /** Koliko dugo se pamti izbor jezika: jedna godina, izraženo u sekundama. */
 export const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 

@@ -10,11 +10,11 @@
 import { cookies } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 
-import { defaultLocale, isLocale, LOCALE_COOKIE } from "./config";
+import { APP_TIME_ZONE, defaultLocale, isLocale, LOCALE_COOKIE } from "./config";
 
 /**
  * Konfiguracija za jedan zahtev.
- * Vraća: izabrani jezik i objekat sa svim prevodima za taj jezik.
+ * Vraća: izabrani jezik, objekat sa svim prevodima za taj jezik i vremensku zonu.
  */
 export default getRequestConfig(async () => {
   // Korak 1: pročitaj kolačić sa jezikom (ako ne postoji ili je neispravan, koristi srpski).
@@ -25,5 +25,7 @@ export default getRequestConfig(async () => {
   // Korak 2: učitaj samo fajl sa prevodima za izabrani jezik.
   const messages = (await import(`../../../messages/${locale}.json`)).default;
 
-  return { locale, messages };
+  // Korak 3: vremenska zona za prikaz datuma (npr. „20. okt 2026, 18:00“). Ista je na
+  // serveru i u pregledaču, pa se datum iscrtan na serveru ne razlikuje od onog u pregledaču.
+  return { locale, messages, timeZone: APP_TIME_ZONE };
 });
