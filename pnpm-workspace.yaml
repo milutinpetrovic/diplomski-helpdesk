@@ -1,3 +1,13 @@
+# Paketi čije install skripte pnpm NE pokreće (nisu potrebne aplikaciji:
+# prebuilt binarni fajlovi, telemetrija @scarf/scarf, alati koje koristi
+# swagger-ui-react samo pri razvoju same biblioteke).
 ignoredBuiltDependencies:
+  - "@parcel/watcher"
+  - "@scarf/scarf"
+  - "@swc/core"
+  - "@tree-sitter-grammars/tree-sitter-yaml"
+  - core-js-pure
   - sharp
+  - tree-sitter
+  - tree-sitter-json
   - unrs-resolver

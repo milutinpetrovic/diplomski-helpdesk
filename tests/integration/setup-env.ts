@@ -16,3 +16,8 @@ if (!process.env.API_URL) {
     if (match?.[1] && match[2] !== undefined) process.env[match[1]] ??= match[2];
   }
 }
+
+// Korak 3: kod aplikacije (src/lib/supabase) čita NEXT_PUBLIC_* nazive; za
+// testove koji pozivaju API rute postavljamo ih na isti lokalni Supabase.
+process.env.NEXT_PUBLIC_SUPABASE_URL ??= process.env.API_URL;
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= process.env.ANON_KEY;

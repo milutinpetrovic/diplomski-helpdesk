@@ -51,16 +51,20 @@ Lozinka za sve naloge: `Lozinka123!`
 | `pnpm db:start` / `pnpm db:stop`    | pokreće / zaustavlja lokalni Supabase                                                          |
 | `pnpm db:reset`                     | briše lokalnu bazu i ponovo primenjuje migracije i seed                                        |
 | `pnpm db:types`                     | generiše TypeScript tipove baze u `src/types/database.ts`                                      |
+| `pnpm test:unit`                    | unit testovi (bez baze): withApi, greške, ApiClient, OpenAPI, real-time                        |
 | `pnpm test:db`                      | integracioni testovi baze (RLS, RPC funkcije, prelazi statusa); traži pokrenut `pnpm db:start` |
 
 ## Promenljive okruženja
 
-Kopirati `.env.example` u `.env.local` i popuniti vrednosti (potrebno od Faze 2).
+Kopirati `.env.example` u `.env.local` i popuniti vrednosti. Za lokalni Supabase: `NEXT_PUBLIC_SUPABASE_URL` i `NEXT_PUBLIC_SUPABASE_ANON_KEY` su `API_URL` i `ANON_KEY` iz `pnpm exec supabase status -o env`.
+
+API dokumentacija (Swagger UI): http://localhost:3000/api-docs.
 
 ## Stanje razvoja
 
-| Faza | Sadržaj                                          | Stanje      |
-| ---- | ------------------------------------------------ | ----------- |
-| 1    | Kostur aplikacije, prevodi, početna stranica, CI | u pregledu  |
-| 2    | Baza podataka (Supabase)                         | u pregledu  |
-| 3–10 | vidi `docs/07-uputstvo-za-implementaciju.md`     | nije počelo |
+| Faza | Sadržaj                                              | Stanje      |
+| ---- | ---------------------------------------------------- | ----------- |
+| 1    | Kostur aplikacije, prevodi, početna stranica, CI     | završeno    |
+| 2    | Baza podataka (Supabase)                             | završeno    |
+| 3    | Infrastruktura API-ja, greške, Swagger (`/api-docs`) | u pregledu  |
+| 4–10 | vidi `docs/07-uputstvo-za-implementaciju.md`         | nije počelo |
