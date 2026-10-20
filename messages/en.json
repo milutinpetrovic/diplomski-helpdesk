@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "title": "Technical Support",
+    "description": "A web application for submitting, tracking and resolving technical support requests."
+  },
+  "language": {
+    "label": "Language",
+    "sr": "SR",
+    "en": "EN",
+    "srFull": "Serbian",
+    "enFull": "English"
+  },
+  "home": {
+    "title": "Technical Support",
+    "subtitle": "Report a problem, track its status and get an answer from the support team in one place.",
+    "features": {
+      "create": {
+        "title": "Submit a request",
+        "description": "Describe the problem and choose a category and priority."
+      },
+      "track": {
+        "title": "Real-time tracking",
+        "description": "Get notified as soon as the status changes or a reply arrives."
+      },
+      "resolve": {
+        "title": "Fast resolution",
+        "description": "The support team takes the request, talks to you and resolves it."
+      }
+    },
+    "comingSoon": "Sign in and registration will be available in the next development phase."
+  }
+}

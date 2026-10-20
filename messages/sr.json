@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "title": "Tehnička podrška",
+    "description": "Veb aplikacija za prijavu, praćenje i rešavanje zahteva za tehničku podršku."
+  },
+  "language": {
+    "label": "Jezik",
+    "sr": "SR",
+    "en": "EN",
+    "srFull": "Srpski",
+    "enFull": "Engleski"
+  },
+  "home": {
+    "title": "Tehnička podrška",
+    "subtitle": "Prijavite problem, pratite njegov status i dobijte odgovor tima za podršku na jednom mestu.",
+    "features": {
+      "create": {
+        "title": "Prijava zahteva",
+        "description": "Opišite problem, izaberite kategoriju i prioritet."
+      },
+      "track": {
+        "title": "Praćenje u realnom vremenu",
+        "description": "Obaveštenja stižu odmah kada se status promeni ili stigne odgovor."
+      },
+      "resolve": {
+        "title": "Brzo rešavanje",
+        "description": "Tim podrške preuzima zahtev, komunicira sa vama i rešava ga."
+      }
+    },
+    "comingSoon": "Prijava i registracija biće dostupne u sledećoj fazi razvoja."
+  }
+}

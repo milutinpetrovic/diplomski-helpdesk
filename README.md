@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tehnička podrška — veb aplikacija (diplomski rad)
 
-## Getting Started
+Veb aplikacija za prijavu, praćenje i rešavanje zahteva za tehničku podršku, napravljena u Next.js-u.
+Diplomski rad: Milutin Petrović (3407), Fakultet informacionih tehnologija, Univerzitet Metropolitan Beograd.
+Mentor: dr Nemanja Zdravković.
 
-First, run the development server:
+- Kontekst i pravila za razvoj: [`CLAUDE.md`](CLAUDE.md)
+- Projektni dizajn (use case, baza, klase, dijagrami sekvenci, API, plan po fazama): [`docs/`](docs/README.md)
+
+## Tehnologije
+
+Next.js 16 (App Router), React 19, TypeScript 5.9 (strict), Tailwind CSS 4, shadcn/ui, next-intl (srpski i engleski).
+U narednim fazama: Supabase (baza, autentifikacija, real-time), Zod, Swagger/OpenAPI, Recharts, Vitest, Playwright.
+
+## Pokretanje
+
+Potrebno: Node.js 22 i pnpm.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm dev          # razvojni server na http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Komande
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Komanda                             | Šta radi                                    |
+| ----------------------------------- | ------------------------------------------- |
+| `pnpm dev`                          | pokreće aplikaciju u razvojnom režimu       |
+| `pnpm build`                        | pravi produkcioni build                     |
+| `pnpm start`                        | pokreće produkcioni build                   |
+| `pnpm lint`                         | ESLint provera                              |
+| `pnpm typecheck`                    | generiše tipove ruta i proverava TypeScript |
+| `pnpm format` / `pnpm format:check` | formatira kod / proverava format (Prettier) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Promenljive okruženja
 
-## Learn More
+Kopirati `.env.example` u `.env.local` i popuniti vrednosti (potrebno od Faze 2).
 
-To learn more about Next.js, take a look at the following resources:
+## Stanje razvoja
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Faza | Sadržaj                                          | Stanje      |
+| ---- | ------------------------------------------------ | ----------- |
+| 1    | Kostur aplikacije, prevodi, početna stranica, CI | u pregledu  |
+| 2    | Baza podataka (Supabase)                         | nije počelo |
+| 3–10 | vidi `docs/07-uputstvo-za-implementaciju.md`     | nije počelo |
