@@ -1,0 +1,6 @@
+# Fajlovi koje Prettier ne formatira: zavisnosti, rezultati build-a i generisani fajlovi.
+node_modules
+.next
+pnpm-lock.yaml
+next-env.d.ts
+docs/img
