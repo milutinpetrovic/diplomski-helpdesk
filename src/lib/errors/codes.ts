@@ -16,6 +16,7 @@
 export const ERROR_HTTP_STATUS = {
   // 400: neispravan ulaz
   VALIDATION_ERROR: 400,
+  AUTH_CALLBACK_FAILED: 400,
   // 401: nema sesije ili pogrešni podaci za prijavu
   UNAUTHENTICATED: 401,
   INVALID_CREDENTIALS: 401,

@@ -1,14 +1,15 @@
 /**
  * Fajl: src/app/page.tsx
- * Svrha: početna stranica (/). U Fazi 1 prikazuje naziv i kratak opis aplikacije
- * i dugme za promenu jezika. U Fazi 4 dobija dugmad Prijava i Registracija,
- * a prijavljenog korisnika preusmerava na /dashboard (vidi docs/06-api-i-stranice.md).
- * Pristup: svi (i gosti).
+ * Svrha: početna stranica (/): naziv i kratak opis aplikacije, dugmad Prijava i
+ * Registracija i dugme za promenu jezika (vidi docs/06-api-i-stranice.md).
+ * Pristup: gosti. Prijavljenog korisnika proxy.ts odmah šalje na /dashboard.
  */
+import Link from "next/link";
 import { BellRing, CircleCheckBig, MessageSquarePlus, type LucideIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 /** Ključevi tri glavne mogućnosti aplikacije (tekstovi su u messages/*.json pod home.features). */
@@ -40,6 +41,15 @@ export default async function HomePage() {
         <section className="flex flex-col gap-4 text-center sm:text-left">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("title")}</h1>
           <p className="max-w-2xl text-lg text-muted-foreground">{t("subtitle")}</p>
+          {/* Dugmad za prijavu i registraciju; na telefonu jedno ispod drugog. */}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg">
+              <Link href="/login">{t("login")}</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/register">{t("register")}</Link>
+            </Button>
+          </div>
         </section>
 
         {/* Tri kartice sa glavnim mogućnostima; na telefonu jedna ispod druge, na većem ekranu u redu. */}
@@ -54,9 +64,6 @@ export default async function HomePage() {
             </Card>
           ))}
         </section>
-
-        {/* Privremena napomena dok prijava ne postoji (uklanja se u Fazi 4). */}
-        <p className="text-sm text-muted-foreground">{t("comingSoon")}</p>
       </main>
     </div>
   );

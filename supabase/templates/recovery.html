@@ -1,0 +1,27 @@
+<!--
+  Fajl: supabase/templates/recovery.html
+  Svrha: email sa linkom za novu lozinku (UC-04), na srpskom i engleskom.
+  Link vodi na /api/auth/callback?token_hash=...&type=recovery; ruta proverava token,
+  prijavljuje korisnika privremenom sesijom i vodi ga na /reset-password.
+  Koristi ga: Supabase Auth (supabase/config.toml, [auth.email.template.recovery]);
+  u Supabase cloud-u isti tekst se upisuje u Authentication -> Email Templates -> Reset password.
+-->
+<h2>Nova lozinka</h2>
+<p>Primili smo zahtev za novu lozinku. Kliknite na link ispod da biste je postavili:</p>
+<p>
+  <a
+    href="{{ .SiteURL }}/api/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password"
+    >Postavi novu lozinku</a
+  >
+</p>
+<p>Ako niste vi tražili novu lozinku, zanemarite ovaj email.</p>
+<hr />
+<h2>Reset your password</h2>
+<p>We received a request to reset your password. Click the link below to set a new one:</p>
+<p>
+  <a
+    href="{{ .SiteURL }}/api/auth/callback?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password"
+    >Set a new password</a
+  >
+</p>
+<p>If you did not request this, you can ignore this email.</p>

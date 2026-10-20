@@ -10,6 +10,10 @@
     "srFull": "Srpski",
     "enFull": "Engleski"
   },
+  "common": {
+    "appName": "Tehnička podrška",
+    "or": "ili"
+  },
   "home": {
     "title": "Tehnička podrška",
     "subtitle": "Prijavite problem, pratite njegov status i dobijte odgovor tima za podršku na jednom mestu.",
@@ -27,10 +31,107 @@
         "description": "Tim podrške preuzima zahtev, komunicira sa vama i rešava ga."
       }
     },
-    "comingSoon": "Prijava i registracija biće dostupne u sledećoj fazi razvoja."
+    "login": "Prijava",
+    "register": "Registracija"
+  },
+  "auth": {
+    "login": {
+      "title": "Prijava",
+      "description": "Prijavite se da biste prijavili problem i pratili svoje zahteve.",
+      "submit": "Prijavi se",
+      "noAccount": "Nemate nalog?",
+      "registerLink": "Registrujte se",
+      "forgotLink": "Zaboravili ste lozinku?"
+    },
+    "register": {
+      "title": "Registracija",
+      "description": "Otvorite nalog da biste prijavili problem timu za podršku.",
+      "submit": "Napravi nalog",
+      "haveAccount": "Već imate nalog?",
+      "loginLink": "Prijavite se",
+      "successTitle": "Proverite email",
+      "successText": "Poslali smo link za potvrdu na adresu {email}. Kliknite na njega da biste aktivirali nalog."
+    },
+    "forgot": {
+      "title": "Zaboravljena lozinka",
+      "description": "Unesite email svog naloga i poslaćemo vam link za novu lozinku.",
+      "submit": "Pošalji link",
+      "successText": "Ako nalog sa adresom {email} postoji, poslali smo link za novu lozinku. Proverite poštu.",
+      "backToLogin": "Nazad na prijavu"
+    },
+    "reset": {
+      "title": "Nova lozinka",
+      "description": "Unesite novu lozinku za svoj nalog.",
+      "submit": "Sačuvaj lozinku",
+      "success": "Lozinka je promenjena."
+    },
+    "fields": {
+      "fullName": "Ime i prezime",
+      "email": "Email",
+      "password": "Lozinka",
+      "newPassword": "Nova lozinka",
+      "confirmPassword": "Ponovite lozinku"
+    },
+    "passwordHint": "Najmanje 8 znakova, bar jedno slovo i jedan broj.",
+    "google": "Nastavi sa Google nalogom"
+  },
+  "validation": {
+    "invalid": "Vrednost nije ispravna.",
+    "required": "Ovo polje je obavezno.",
+    "fullNameLength": "Ime mora imati od 2 do 100 znakova.",
+    "emailInvalid": "Unesite ispravnu email adresu.",
+    "passwordWeak": "Lozinka mora imati najmanje 8 znakova, bar jedno slovo i jedan broj.",
+    "passwordTooLong": "Lozinka može imati najviše 72 znaka.",
+    "passwordMismatch": "Lozinke se ne poklapaju.",
+    "passwordSame": "Nova lozinka mora biti drugačija od stare."
+  },
+  "nav": {
+    "label": "Glavni meni",
+    "openMenu": "Otvori meni",
+    "closeMenu": "Zatvori meni",
+    "skipToContent": "Preskoči na sadržaj",
+    "dashboard": "Kontrolni panel",
+    "profile": "Profil",
+    "analytics": "Analitika",
+    "users": "Korisnici",
+    "categories": "Kategorije",
+    "apiDocs": "API dokumentacija",
+    "logout": "Odjava"
+  },
+  "roles": {
+    "customer": "Korisnik",
+    "agent": "Agent",
+    "admin": "Administrator"
+  },
+  "profile": {
+    "title": "Moj profil",
+    "description": "Lični podaci i podešavanja naloga.",
+    "detailsTitle": "Lični podaci",
+    "role": "Uloga",
+    "language": "Jezik interfejsa",
+    "save": "Sačuvaj izmene",
+    "saved": "Profil je sačuvan.",
+    "passwordTitle": "Promena lozinke",
+    "passwordDescription": "Posle promene prijavljujete se novom lozinkom.",
+    "passwordSave": "Promeni lozinku",
+    "passwordSaved": "Lozinka je promenjena.",
+    "googleAccount": "Prijavljujete se Google nalogom, pa za ovaj nalog nema lozinke u aplikaciji."
+  },
+  "dashboard": {
+    "title": "Kontrolni panel",
+    "welcome": "Dobro došli, {name}!"
+  },
+  "placeholder": {
+    "text": "Ova stranica je u izradi i uskoro će biti dostupna."
+  },
+  "forbidden": {
+    "title": "Nemate pristup",
+    "text": "Ova stranica je dostupna samo administratorima.",
+    "back": "Nazad na kontrolni panel"
   },
   "errors": {
     "VALIDATION_ERROR": "Podaci nisu ispravni. Proverite označena polja.",
+    "AUTH_CALLBACK_FAILED": "Prijava nije uspela ili je link istekao. Pokušajte ponovo.",
     "UNAUTHENTICATED": "Potrebno je da se prijavite.",
     "INVALID_CREDENTIALS": "Pogrešan email ili lozinka.",
     "FORBIDDEN": "Nemate pravo da izvršite ovu radnju.",

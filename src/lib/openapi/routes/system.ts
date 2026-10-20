@@ -30,7 +30,7 @@ registry.registerPath({
               openapi: z.string().meta({ example: "3.0.3" }),
               info: z.object({
                 title: z.string().meta({ example: "Tehnička podrška — API" }),
-                version: z.string().meta({ example: "0.3.0" }),
+                version: z.string().meta({ example: "0.4.0" }),
               }),
               paths: z.object({}).meta({ description: "Sve API rute aplikacije." }),
             })

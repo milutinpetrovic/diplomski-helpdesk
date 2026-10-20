@@ -6,3 +6,5 @@
  * Koristi ga: src/lib/openapi/document.ts.
  */
 import "@/lib/openapi/routes/system";
+import "@/lib/openapi/routes/auth";
+import "@/lib/openapi/routes/profile";

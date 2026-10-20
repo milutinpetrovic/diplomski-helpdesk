@@ -23,8 +23,10 @@ import type { Database } from "@/types/database";
  * Component-i upis nije dozvoljen, pa se tada preskače (osvežavanje radi proxy.ts).
  */
 export async function createServerSupabaseClient(): Promise<DbClient> {
-  const { url, anonKey } = requireSupabaseEnv();
+  // Kolačići se čitaju PRVI: tako Next.js pri build-u zna da je stranica dinamička
+  // (zavisi od zahteva) i ne pokušava da je unapred napravi bez Supabase podešavanja.
   const cookieStore = await cookies();
+  const { url, anonKey } = requireSupabaseEnv();
 
   return createServerClient<Database>(url, anonKey, {
     cookies: {

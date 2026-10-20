@@ -48,6 +48,7 @@ const ERROR_STATUS_DESCRIPTIONS = {
   403: "Uloga nema pravo na ovu radnju (FORBIDDEN, ACCOUNT_DISABLED...).",
   404: "Ne postoji ili korisnik nema pristup (NOT_FOUND, TICKET_NOT_FOUND).",
   409: "Konflikt sa trenutnim stanjem (npr. INVALID_STATUS_TRANSITION).",
+  429: "Previše zahteva u kratkom roku (RATE_LIMITED).",
   500: "Neočekivana greška (INTERNAL_ERROR).",
 } as const;
 
@@ -58,6 +59,7 @@ const ERROR_STATUS_EXAMPLE_CODES: Record<keyof typeof ERROR_STATUS_DESCRIPTIONS,
   403: "FORBIDDEN",
   404: "NOT_FOUND",
   409: "INVALID_STATUS_TRANSITION",
+  429: "RATE_LIMITED",
   500: "INTERNAL_ERROR",
 };
 
@@ -66,12 +68,17 @@ export type ErrorStatus = keyof typeof ERROR_STATUS_DESCRIPTIONS;
 
 /**
  * Pravi deo `responses` za greške koje ruta može da vrati.
- * Ulaz: spisak statusa, npr. [400, 401, 403]. Statusi 500 se uvek dodaju.
+ * Ulaz: spisak statusa, npr. [400, 401, 403] (status 500 se uvek dodaje) i,
+ * opciono, kod greške za primer po statusu kad se razlikuje od tipičnog
+ * (npr. { 401: "INVALID_CREDENTIALS" } za prijavu).
  */
-export function errorResponses(statuses: readonly ErrorStatus[]): RouteConfig["responses"] {
+export function errorResponses(
+  statuses: readonly ErrorStatus[],
+  examples: Partial<Record<ErrorStatus, ErrorCode>> = {},
+): RouteConfig["responses"] {
   const responses: RouteConfig["responses"] = {};
   for (const status of new Set<ErrorStatus>([...statuses, 500])) {
-    const code = ERROR_STATUS_EXAMPLE_CODES[status];
+    const code = examples[status] ?? ERROR_STATUS_EXAMPLE_CODES[status];
     responses[status] = {
       description: ERROR_STATUS_DESCRIPTIONS[status],
       content: {
