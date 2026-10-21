@@ -42,6 +42,16 @@ export const TICKET_STATUSES = [
   "closed",
 ] as const satisfies readonly TicketStatus[];
 
+/**
+ * Statusi zahteva koji još nije rešen („otvoren“ u širem smislu): na njima
+ * tim još radi. Koriste ih filter liste „Svi nerešeni“ i kontrolni panel.
+ */
+export const UNRESOLVED_TICKET_STATUSES = [
+  "open",
+  "in_progress",
+  "waiting_on_customer",
+] as const satisfies readonly TicketStatus[];
+
 /** Svi prioriteti, od najnižeg do najvišeg (isti redosled kao enum u bazi). */
 export const TICKET_PRIORITIES = [
   "low",

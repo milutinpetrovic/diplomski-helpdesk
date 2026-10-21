@@ -102,6 +102,13 @@ export const assignTicketSchema = z
   })
   .meta({ id: "AssignTicketInput", description: "Kome se zahtev dodeljuje." });
 
+/**
+ * Posebna vrednost filtera status: svi nerešeni zahtevi (open, in_progress,
+ * waiting_on_customer). Na nju vode brojevi „Otvoreni“, „Nedodeljeni“ i
+ * „Hitni“ sa kontrolnog panela, da lista pokaže tačno one zahteve koji su prebrojani.
+ */
+export const UNRESOLVED_FILTER = "unresolved";
+
 /** Dozvoljena sortiranja liste; minus znači opadajuće (najnoviji / najhitniji prvo). */
 export const TICKET_SORTS = [
   "-createdAt",
@@ -119,7 +126,15 @@ export type TicketSort = (typeof TICKET_SORTS)[number];
  * Prazan parametar (npr. ?status=) se tretira kao da nije poslat.
  */
 export const ticketListQuerySchema = paginationSchema.extend({
-  status: ticketStatusSchema.optional().meta({ description: "Samo zahtevi u ovom statusu." }),
+  status: z
+    .union([ticketStatusSchema, z.literal(UNRESOLVED_FILTER)])
+    .optional()
+    .meta({
+      description:
+        "Samo zahtevi u ovom statusu; unresolved = svi nerešeni (open, in_progress, " +
+        "waiting_on_customer).",
+      example: "unresolved",
+    }),
   priority: ticketPrioritySchema.optional().meta({ description: "Samo zahtevi ovog prioriteta." }),
   categoryId: uuidSchema.optional().meta({
     description: "Samo zahtevi ove kategorije.",

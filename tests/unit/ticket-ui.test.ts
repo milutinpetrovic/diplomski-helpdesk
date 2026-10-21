@@ -43,6 +43,13 @@ describe("parseTicketListParams", () => {
     expect(parseTicketListParams({ status: "", q: "  " })).toEqual(parseTicketListParams({}));
   });
 
+  it("status=unresolved (svi nerešeni) je dozvoljen filter", () => {
+    expect(parseTicketListParams({ status: "unresolved" }).status).toBe("unresolved");
+    expect(ticketListHref(parseTicketListParams({ status: "unresolved" }))).toBe(
+      "/tickets?status=unresolved",
+    );
+  });
+
   it("neispravan parametar se zanemaruje, ostali ostaju", () => {
     expect(parseTicketListParams({ status: "xyz", priority: "high", page: "-1" })).toEqual({
       priority: "high",

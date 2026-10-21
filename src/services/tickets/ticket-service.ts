@@ -17,15 +17,16 @@
 import { AppError, fromDbError } from "@/lib/errors/app-error";
 import { REALTIME_EVENTS } from "@/lib/realtime/events";
 import type { Paginated } from "@/lib/validation/common";
-import type {
-  CreateTicketInput,
-  Ticket,
-  TicketDetail,
-  TicketHistoryEntry,
-  TicketListItem,
-  TicketListQuery,
-  TicketSort,
-  UpdateTicketInput,
+import {
+  UNRESOLVED_FILTER,
+  type CreateTicketInput,
+  type Ticket,
+  type TicketDetail,
+  type TicketHistoryEntry,
+  type TicketListItem,
+  type TicketListQuery,
+  type TicketSort,
+  type UpdateTicketInput,
 } from "@/lib/validation/tickets";
 import type { TicketRating } from "@/lib/validation/ratings";
 import { StatusTransitionPolicy } from "@/services/policies/status-transitions";
@@ -34,7 +35,7 @@ import type { ServiceContext } from "@/services/service-context";
 import { loadCategories, loadProfileSummaries, pick } from "@/services/shared/lookups";
 import { publishTicketEvent } from "@/services/shared/publish";
 import { parseTicketSearch } from "@/services/tickets/ticket-search";
-import type { TicketStatus } from "@/types/domain";
+import { UNRESOLVED_TICKET_STATUSES, type TicketStatus } from "@/types/domain";
 import type { Database, Json } from "@/types/database";
 
 /** Red tabele tickets, kako ga vraća Supabase. */
@@ -145,7 +146,12 @@ export class TicketService {
 
     // Korisnik vidi samo svoje (to garantuje i RLS; ovde je i eksplicitno).
     if (!this.ctx.auth.isStaff()) request = request.eq("created_by", this.ctx.auth.userId);
-    if (query.status) request = request.eq("status", query.status);
+    // Status: jedan status ili „unresolved“ (svi nerešeni, filter sa kontrolnog panela).
+    if (query.status === UNRESOLVED_FILTER) {
+      request = request.in("status", [...UNRESOLVED_TICKET_STATUSES]);
+    } else if (query.status) {
+      request = request.eq("status", query.status);
+    }
     if (query.priority) request = request.eq("priority", query.priority);
     if (query.categoryId) request = request.eq("category_id", query.categoryId);
     if (query.assigneeId === "me") request = request.eq("assigned_to", this.ctx.auth.userId);

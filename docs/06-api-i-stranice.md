@@ -57,15 +57,15 @@ Napomene (Faza 4):
 
 ### Zahtevi (tag `Tickets`)
 
-| Metod i putanja                 | Uloge                                    | Telo / parametri                                                                                                                                       | Odgovor                                                                                                                                      | UC                  |
-| ------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `GET /api/tickets`              | C A AD                                   | `?status&priority&categoryId&assigneeId(me\|unassigned\|uuid)&q&sort(-createdAt\|createdAt\|-updatedAt\|updatedAt\|-priority\|priority)&page&pageSize` | `Paginated<TicketListItem>` (korisnik: samo svoje)                                                                                           | UC-10, UC-15, UC-19 |
-| `POST /api/tickets`             | C                                        | `{ title, description, categoryId, priority }`                                                                                                         | `201 TicketDetail`                                                                                                                           | UC-09               |
-| `GET /api/tickets/{id}`         | C A AD                                   | —                                                                                                                                                      | `TicketDetail` = `TicketWithRelations` + `permissions { allowedTransitions[], canComment, canCommentInternal, canAssign, canRate, canEdit }` | UC-11               |
-| `PATCH /api/tickets/{id}`       | A AD (C dok je `open`, samo naslov/opis) | `{ title?, description?, categoryId?, priority? }`                                                                                                     | `TicketDetail`                                                                                                                               | —                   |
-| `POST /api/tickets/{id}/status` | C A AD                                   | `{ status }`                                                                                                                                           | `TicketDetail`                                                                                                                               | UC-13, UC-17        |
-| `POST /api/tickets/{id}/assign` | A AD                                     | `{ assigneeId }` (agent: samo svoj id; admin: id ili `null` = oslobodi)                                                                                | `TicketDetail`                                                                                                                               | UC-16, UC-20        |
-| `GET /api/tickets/{id}/history` | C A AD                                   | —                                                                                                                                                      | `TicketHistoryEntry[]` (sa imenom aktera)                                                                                                    | UC-11               |
+| Metod i putanja                 | Uloge                                    | Telo / parametri                                                                                                                                                        | Odgovor                                                                                                                                      | UC                  |
+| ------------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `GET /api/tickets`              | C A AD                                   | `?status(… \| unresolved)&priority&categoryId&assigneeId(me\|unassigned\|uuid)&q&sort(-createdAt\|createdAt\|-updatedAt\|updatedAt\|-priority\|priority)&page&pageSize` | `Paginated<TicketListItem>` (korisnik: samo svoje)                                                                                           | UC-10, UC-15, UC-19 |
+| `POST /api/tickets`             | C                                        | `{ title, description, categoryId, priority }`                                                                                                                          | `201 TicketDetail`                                                                                                                           | UC-09               |
+| `GET /api/tickets/{id}`         | C A AD                                   | —                                                                                                                                                                       | `TicketDetail` = `TicketWithRelations` + `permissions { allowedTransitions[], canComment, canCommentInternal, canAssign, canRate, canEdit }` | UC-11               |
+| `PATCH /api/tickets/{id}`       | A AD (C dok je `open`, samo naslov/opis) | `{ title?, description?, categoryId?, priority? }`                                                                                                                      | `TicketDetail`                                                                                                                               | —                   |
+| `POST /api/tickets/{id}/status` | C A AD                                   | `{ status }`                                                                                                                                                            | `TicketDetail`                                                                                                                               | UC-13, UC-17        |
+| `POST /api/tickets/{id}/assign` | A AD                                     | `{ assigneeId }` (agent: samo svoj id; admin: id ili `null` = oslobodi)                                                                                                 | `TicketDetail`                                                                                                                               | UC-16, UC-20        |
+| `GET /api/tickets/{id}/history` | C A AD                                   | —                                                                                                                                                                       | `TicketHistoryEntry[]` (sa imenom aktera)                                                                                                    | UC-11               |
 
 Napomene (Faza 5a):
 
@@ -117,13 +117,21 @@ Napomene (Faza 5a):
 
 ### Dashboard i analitika (tagovi `Dashboard`, `Analytics`)
 
-| Metod i putanja                   | Uloge  | Telo / parametri                                 | Odgovor                                                                       | UC    |
-| --------------------------------- | ------ | ------------------------------------------------ | ----------------------------------------------------------------------------- | ----- |
-| `GET /api/dashboard`              | C A AD | —                                                | `DashboardData` (oblik zavisi od uloge, polje `kind: customer\|agent\|admin`) | UC-25 |
-| `GET /api/analytics/overview`     | AD     | `?from&to`                                       | `AnalyticsOverview`                                                           | UC-23 |
-| `GET /api/analytics/by-dimension` | AD     | `?from&to&dimension(status\|category\|priority)` | `CountItem[]`                                                                 | UC-23 |
-| `GET /api/analytics/agents`       | AD     | `?from&to`                                       | `AgentStats[]`                                                                | UC-23 |
-| `GET /api/analytics/trend`        | AD     | `?from&to&bucket(day\|week)`                     | `TrendPoint[]`                                                                | UC-23 |
+| Metod i putanja      | Uloge  | Telo / parametri | Odgovor                                                                       | UC    |
+| -------------------- | ------ | ---------------- | ----------------------------------------------------------------------------- | ----- |
+| `GET /api/dashboard` | C A AD | —                | `DashboardData` (oblik zavisi od uloge, polje `kind: customer\|agent\|admin`) | UC-25 |
+
+Oblik `DashboardData` (Faza 6, `src/lib/validation/dashboard.ts`):
+
+- `customer`: `statusCounts`, `waitingOnMe[]`, `toRate[]` (rešeni ili zatvoreni bez ocene), `recent[]`
+- `agent`: `myStatusCounts`, `unassignedCount`, `urgentCount`, `unassignedQueue[]`, `urgent[]`, `rating { average, count }`, `resolvedCount`
+- `admin`: `statusCounts`, `openCount`, `unassignedCount`, `urgentCount`, `workload[]` (`AgentSummary`), `unassignedQueue[]`
+
+Liste imaju najviše 5 zahteva (`DashboardTicket`). „Otvoreni“, „nedodeljeni“ i „hitni“ broje samo nerešene zahteve, a njihovi linkovi vode na `/tickets?status=unresolved&...`, pa lista prikazuje iste zahteve koji su prebrojani.
+| `GET /api/analytics/overview` | AD | `?from&to` | `AnalyticsOverview` | UC-23 |
+| `GET /api/analytics/by-dimension` | AD | `?from&to&dimension(status\|category\|priority)` | `CountItem[]` | UC-23 |
+| `GET /api/analytics/agents` | AD | `?from&to` | `AgentStats[]` | UC-23 |
+| `GET /api/analytics/trend` | AD | `?from&to&bucket(day\|week)` | `TrendPoint[]` | UC-23 |
 
 ### Dokumentacija (tag `Docs`)
 

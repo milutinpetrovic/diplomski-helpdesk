@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
 import type { AgentSummary } from "@/lib/validation/admin";
 import type { Category } from "@/lib/validation/categories";
-import { TICKET_SORTS, type TicketListQuery } from "@/lib/validation/tickets";
+import { TICKET_SORTS, UNRESOLVED_FILTER, type TicketListQuery } from "@/lib/validation/tickets";
 import { TICKET_PRIORITIES, TICKET_STATUSES } from "@/types/domain";
 
 /** Polja forme filtera (imena su ista kao parametri u adresi). */
@@ -106,6 +106,7 @@ export function TicketFilters({
           <Label htmlFor="status">{t("tickets.columns.status")}</Label>
           <NativeSelect id="status" name="status" defaultValue={query.status ?? ""}>
             <option value="">{t("tickets.filters.all")}</option>
+            <option value={UNRESOLVED_FILTER}>{t("tickets.filters.unresolved")}</option>
             {TICKET_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {t(`ticketStatus.${status}`)}
