@@ -47,7 +47,13 @@ export function CsatChart({ csat }: { csat: AnalyticsOverview["csat"] }) {
       {/* Korak 3: stubići 1–5 (samo za oko; isti brojevi su u tabeli). */}
       <div className="h-48 w-full" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={rows} margin={{ top: 20, right: 8, bottom: 0, left: 8 }}>
+          {/* accessibilityLayer={false}: grafikon je skriven od čitača ekrana (aria-hidden),
+              pa ne sme ni da prima fokus tastaturom; podaci su u tabeli ispod. */}
+          <BarChart
+            accessibilityLayer={false}
+            data={rows}
+            margin={{ top: 20, right: 8, bottom: 0, left: 8 }}
+          >
             <XAxis
               dataKey="short"
               tick={{ fontSize: 12, fill: "var(--muted-foreground)" }}

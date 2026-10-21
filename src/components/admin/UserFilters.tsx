@@ -63,9 +63,9 @@ export function UserFilters({
       }}
       className="mb-4 flex flex-col gap-3"
     >
-      {/* Pretraga po imenu ili emailu, pa uloga i status (na računaru u jednom redu). */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-[1fr_12rem_12rem]">
-        <div className="col-span-2 flex flex-col gap-2 md:col-span-1">
+      {/* Pretraga po imenu ili emailu, pa uloga i status (na računaru, od širine lg, u jednom redu). */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-[1fr_12rem_12rem]">
+        <div className="col-span-2 flex flex-col gap-2 lg:col-span-1">
           <Label htmlFor="q">{t("admin.users.filters.search")}</Label>
           <div className="flex gap-2">
             <Input

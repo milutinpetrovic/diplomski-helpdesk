@@ -6,6 +6,9 @@
  * Zasnovan je na Radix Dialog-u (isti paket kao bočni meni, sheet.tsx), pa sam
  * rešava pristupačnost: fokus ostaje u prozoru dok je otvoren, Escape ga
  * zatvara, a čitač ekrana ga najavljuje kao dijalog sa naslovom i opisom.
+ * Dodatak (Faza 10): posle zatvaranja fokus se vraća na element koji je bio
+ * fokusiran kad se prozor otvorio, i kad dijalog nema DialogTrigger (otvara
+ * ga stanje, npr. potvrda u UserTable i na kanban tabli).
  */
 "use client";
 
@@ -56,8 +59,25 @@ function DialogContent({
   className,
   children,
   closeLabel,
+  onCloseAutoFocus,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { closeLabel: string }) {
+  // Korak 1: element koji je imao fokus pre otvaranja. useLayoutEffect radi pre
+  // Radix-ovog premeštanja fokusa u prozor (to je obični useEffect).
+  const returnFocus = React.useRef<HTMLElement | null>(null);
+  React.useLayoutEffect(() => {
+    if (document.activeElement instanceof HTMLElement) returnFocus.current = document.activeElement;
+  }, []);
+
+  // Korak 2: posle zatvaranja fokus nazad na taj element (ako je još na stranici).
+  function handleCloseAutoFocus(event: Event) {
+    onCloseAutoFocus?.(event);
+    const target = returnFocus.current;
+    if (event.defaultPrevented || !target?.isConnected) return;
+    event.preventDefault();
+    target.focus();
+  }
+
   return (
     <DialogPrimitive.Portal>
       <DialogOverlay />
@@ -67,6 +87,7 @@ function DialogContent({
           "fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg border bg-background p-6 shadow-lg duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
           className,
         )}
+        onCloseAutoFocus={handleCloseAutoFocus}
         {...props}
       >
         {children}

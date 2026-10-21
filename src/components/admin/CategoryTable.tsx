@@ -67,7 +67,7 @@ export function CategoryTable({ categories }: { categories: Category[] }) {
                 <span>{main}</span>
                 <span className="font-normal text-muted-foreground">/ {other}</span>
                 {!category.isActive ? (
-                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-foreground">
                     {t("statusInactive")}
                   </span>
                 ) : null}

@@ -9,7 +9,7 @@ Izveštaj za poglavlje rada „Testiranje aplikacije“. Opisuje koje vrste test
 | Unit         | Vitest                                | `tests/unit/`            | 302          | Pravila bez baze: tabela prelaza statusa, ko sme šta (`TicketAccessPolicy`), Zod šeme, mapiranje grešaka, pomoćne funkcije |
 | Integracioni | Vitest + lokalni Supabase             | `tests/integration/`     | 190          | API rute i RPC funkcije nad pravom bazom, prijavljeni kao različite uloge; real-time događaji                              |
 | RLS          | Vitest + lokalni Supabase (PostgREST) | `tests/integration/rls/` | 63           | Svaka ćelija RLS matrice (sekcija 3): baza sama brani podatke i kad se API zaobiđe                                         |
-| E2E          | Playwright                            | `tests/e2e/`             | 11           | Glavni scenariji u pravom pregledaču (Chromium), kao korisnik, agent i admin (sekcija 5)                                   |
+| E2E          | Playwright                            | `tests/e2e/`             | 15           | Glavni scenariji u pravom pregledaču (Chromium), kao korisnik, agent i admin (sekcija 5)                                   |
 | API          | Postman + newman                      | `postman/`               | 57 poziva    | Svaka API ruta iz Swagger-a pozvana kao prava uloga: status, oblik odgovora (šema iz OpenAPI-ja) i kod greške (sekcija 6)  |
 
 Broj integracionih testova ne uključuje RLS testove (oni su u svom redu). Svi testovi se pokreću u CI-u (GitHub Actions, `.github/workflows/ci.yml`) na svaki push i pull request.
@@ -160,6 +160,8 @@ Testovi rade u pravom pregledaču (Chromium) nad pravom aplikacijom i lokalnim S
 | `language.spec.ts`         | srpski → engleski, izbor se pamti posle reload-a                                                                                                                           | NFZ-7                                          |
 | `mobile.spec.ts`           | telefon 390 px: meni iza dugmeta, lista, zahtev i kanban tabla bez vodoravnog pomeranja                                                                                    | NFZ-1                                          |
 | `kanban.spec.ts`           | prevlačenje mišem (preuzimanje), zabranjen prelaz sa porukom, prevlačenje tastaturom                                                                                       | UC-13, UC-16, NFZ-4                            |
+| `responsive.spec.ts`       | sve stranice svake uloge na 390, 768 i 1280 px bez vodoravnog pomeranja stranice                                                                                           | NFZ-1                                          |
+| `keyboard.spec.ts`         | samo tastatura: link „Preskoči na sadržaj“, meni na telefonu (Enter/Escape, fokus se vraća), dijalog za potvrdu (Escape, fokus se vraća)                                   | NFZ-4                                          |
 
 Registracija i real-time traže pravi Supabase Auth (sa Mailpit-om) i Realtime, koje pokreće `supabase start`. U okruženju bez Docker-a real-time test se preskače (`REALTIME_TESTS=off`), kao i integracioni real-time testovi. U CI-u rade svi.
 
@@ -190,3 +192,42 @@ Kolekcija `postman/helpdesk.postman_collection.json` poziva API isto kao spoljni
 | 8. Sistem i odjava | OpenAPI specifikacija; odjava sa posebnom prijavom (da ne poništi tokene ostalih poziva)                                                                       | —                                                                                                                                                                                                   |
 
 Ukupno 57 poziva za svih 34 API operacija (30 putanja). Kolekcija pravi nov zahtev, novog korisnika i novu (pa deaktiviranu) kategoriju pri svakom pokretanju, zato se ne pokreće nad produkcijom. Okruženja: `postman/local.postman_environment.json` (http://localhost:3000) i `postman/demo.postman_environment.json` (adresa demo servera, upisuje se posle deploy-a).
+
+## 7. Responzivnost i pristupačnost (Faza 10)
+
+**Širine ekrana.** Svaka stranica je proverena kao gost, korisnik, agent i admin na tri širine:
+
+- 390 px: telefon, meni iza dugmeta
+- 768 px: tablet, bočni meni je vidljiv
+- 1280 px: računar
+
+Ukupno je to 63 kombinacije stranice, širine i uloge. Za svaku je napravljen snimak ekrana, i za svaku je mereno da li je stranica šira od ekrana.
+
+Pronađena greška: lista naloga (`/admin/users`) na tabletu je bila za 105 px šira od ekrana. Kolone reda (ime, uloga, broj zahteva, dugme) počinjale su već od širine `md`, a pored bočnog menija za njih nema mesta. Sada se ređaju u jedan red tek od širine `lg`. Test `responsive.spec.ts` sada proverava sve stranice na sve tri širine, pa bi isti problem odmah pao u CI-u. Tabele sa mnogo kolona (lista zahteva) i kanban tabla se pomeraju unutar svog okvira, a ne cela stranica.
+
+**Lighthouse (kategorija Accessibility).** Mereno je na svakoj stranici, za svaku ulogu, u režimu telefona i računara: ukupno 38 merenja (Lighthouse 13, Chromium).
+
+| Stranica                                    | Pre ispravki | Posle |
+| ------------------------------------------- | ------------ | ----- |
+| prijava, registracija, zaboravljena lozinka | 100          | 100   |
+| kontrolni panel (sve uloge)                 | 100          | 100   |
+| lista, kanban, novi zahtev, zahtev          | 100          | 100   |
+| obaveštenja, profil, korisnici              | 100          | 100   |
+| analitika                                   | 96 / 97      | 100   |
+| kategorije                                  | 96           | 100   |
+
+Ispravljeno:
+
+- **Analitika:** grafikoni su sakriveni od čitača ekrana (`aria-hidden`), jer su isti podaci u tabeli ispod. Recharts je ipak davao grafikonu fokus tastaturom, pa je fokus padao na nevidljiv element. Sada je `accessibilityLayer={false}`.
+- **Kategorije:** oznaka „Neaktivna“ je imala premali kontrast teksta. Sada koristi osnovnu boju teksta.
+- **Dugmad za jezik:** vidljivo „SR“/„EN“ sada je deo naziva dugmeta („SR (Srpski)“), da korisnik koji upravlja glasom može da ga izgovori (WCAG 2.5.3).
+- **Dijalozi:** posle zatvaranja prozora za potvrdu (Escape ili „Otkaži“) fokus se vraća na dugme koje ga je otvorilo. Ranije je padao na početak stranice. Ovo je pronašao test `keyboard.spec.ts`.
+
+Lighthouse i dalje navodi informativnu stavku „label-content-name-mismatch“, koja ne ulazi u ocenu, za dve vrste elemenata:
+
+- **Zvonce za obaveštenja:** vidljiv je samo broj („9+“), a naziv je „Obaveštenja (12 nepročitanih)“.
+- **Kartice i brojevi na panelu:** naziv namerno daje celu rečenicu za čitač ekrana, npr. „Nedodeljeni: 6. Prikaži zahteve: Nedodeljeni“.
+
+Oba su svesno ostavljena, jer je pun naziv korisniji za čitač ekrana od samog broja.
+
+Lighthouse se pokreće ručno (`npx lighthouse <adresa> --only-categories=accessibility`), nad stranicom na koju je pregledač već prijavljen. Zato nije deo CI-a.

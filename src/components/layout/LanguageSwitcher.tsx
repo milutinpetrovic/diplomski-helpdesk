@@ -87,12 +87,14 @@ export function LanguageSwitcher({
             size="sm"
             variant={isActive ? "default" : "ghost"}
             aria-pressed={isActive}
-            aria-label={t(`${locale}Full`)}
             disabled={isPending}
             onClick={() => changeLocale(locale)}
             className="h-7 px-2.5"
           >
+            {/* Vidljiva oznaka (SR/EN) je deo naziva dugmeta, a pun naziv jezika
+                čuje samo čitač ekrana: naziv je npr. „SR (Srpski)“ (WCAG 2.5.3). */}
             {t(locale)}
+            <span className="sr-only"> ({t(`${locale}Full`)})</span>
           </Button>
         );
       })}
