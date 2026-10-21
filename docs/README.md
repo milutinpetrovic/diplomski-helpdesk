@@ -11,6 +11,7 @@ Projektni dizajn aplikacije za tehničku podršku (diplomski rad, Milutin Petrov
 | 05  | [Dijagrami sekvenci](05-dijagrami-sekvenci.md)                     | SD-01..12: detaljna saradnja objekata za ključne tokove                                                              |
 | 06  | [API i stranice](06-api-i-stranice.md)                             | Sve API rute, greške, Zod šeme, stranice, meni po ulozi                                                              |
 | 07  | [Uputstvo za implementaciju](07-uputstvo-za-implementaciju.md)     | Faze 0–10 sa zadacima i kriterijumima završetka, pravila, prevodi, mapa dokument → poglavlje rada                    |
+| 08  | [Testiranje](08-testiranje.md)                                     | Vrste testova, pokretanje, RLS matrica sa testom za svaku ćeliju, pokrivenost koda                                   |
 
 Pravila za održavanje: kada se u kodu promeni tabela, ruta, klasa ili tok, u istom commit-u se ažurira odgovarajući dokument ovde. Dokumentacija i kod ne smeju da se razilaze.
 

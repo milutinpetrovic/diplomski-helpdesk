@@ -54,7 +54,15 @@ jobs:
         with:
           name: database-types
           path: src/types/database.ts
-      - run: pnpm test:db
+      # Unit i integracioni testovi zajedno, uz merenje pokrivenosti koda
+      # (izveštaj se čuva kao artefakt „coverage“, za poglavlje o testiranju).
+      - run: pnpm test:coverage
+      - name: Sačuvaj izveštaj o pokrivenosti
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
       # Demo podaci (scripts/seed-demo.mts): pokreću se dva puta (skripta sme da se
       # ponovi), pa se proverava da je u bazi ceo skup demo zahteva (bez duplikata).
       - name: Demo podaci (pnpm seed:demo)
