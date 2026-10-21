@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Izveštaj o pokrivenosti koda (pnpm test:coverage), generisan fajl.
+    "coverage/**",
   ]),
 ]);
 
