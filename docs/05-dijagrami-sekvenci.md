@@ -1,6 +1,6 @@
 # 05 — Dijagrami sekvenci (detaljni)
 
-Za razliku od sistemskih dijagrama (`04`), ovde se vidi kako objekti unutar sistema sarađuju: stranica → `ApiClient` → API ruta (`withApi`) → `AuthGuard` → servis → politika → Supabase (RPC/RLS) → real-time → klijent. Nazivi klasa i metoda odgovaraju `03-dijagram-klasa.md`.
+Za razliku od sistemskih dijagrama (`04`), ovde se vidi kako objekti unutar sistema sarađuju: stranica → `ApiClient` → API ruta (`withApi`) → `AuthGuard` → servis → politika → Supabase (RPC/RLS) → real-time → klijent. Nazivi klasa, modula i metoda odgovaraju `03-dijagram-klasa.md` i kodu (usklađeno u Fazi 10).
 
 ## SD-01 Zajednički tok svake zaštićene API rute
 
@@ -23,9 +23,10 @@ sequenceDiagram
     PX->>PX: osveži sesiju u kolačiću (ako postoji)
     PX->>R: prosledi zahtev
     R->>W: handler(request, params)
-    W->>AG: requireRole(request, options.roles)
-    AG->>SF: createServerClient() ili createClientFromBearer(token)
-    SF-->>AG: SupabaseClient (sa identitetom korisnika)
+    W->>AG: createRequestClient(request)
+    AG->>SF: readBearerToken(request)<br/>createClientFromBearer(token) ili createServerSupabaseClient()
+    SF-->>AG: DbClient (sa identitetom korisnika)
+    W->>AG: requireRole(client, options.roles)
     AG->>DB: auth.getUser() + select profiles where id = uid
     alt nema sesije
         AG-->>W: throw AppError(UNAUTHENTICATED)
@@ -38,10 +39,10 @@ sequenceDiagram
         W->>W: Zod parse (params, query, body)
         W->>SV: new Servis(ServiceContext) i poziv metode
         SV-->>W: rezultat
-        W-->>C: 200/201 JSON
+        W-->>C: 200/201 JSON (ili 204 bez tela)
     end
     Note over W,EH: svaka bačena greška ide kroz catch
-    W->>EH: toResponse(error)
+    W->>EH: toErrorResponse(error, localeFromRequest(request))
     EH-->>C: { error: { code, message, details } } + HTTP status
 ```
 
@@ -64,10 +65,10 @@ sequenceDiagram
     P->>AC: post("/api/auth/register", data)
     AC->>R: POST JSON
     R->>R: Zod validacija (ista registerSchema)
-    R->>AS: register({fullName, email, password})
-    AS->>SA: signUp(email, password, data: {full_name}, emailRedirectTo: /api/auth/callback)
+    R->>AS: register({fullName, email, password}, locale)
+    AS->>SA: signUp(email, password, data: {full_name, locale})
     alt email postoji
-        SA-->>AS: greška
+        SA-->>AS: korisnik bez identiteta (Supabase ne otkriva da nalog postoji)
         AS-->>R: throw AppError(EMAIL_ALREADY_REGISTERED)
         R-->>AC: 409
         AC-->>P: ApiClientError
@@ -80,8 +81,8 @@ sequenceDiagram
         R-->>AC: 201
         P-->>G: "Proverite email"
     end
-    G->>R: klik na link iz emaila (GET /api/auth/callback?code=...)
-    Note right of G: callback razmenjuje kod za sesiju<br/>i preusmerava na /dashboard
+    G->>R: klik na link iz emaila (GET /api/auth/callback?token_hash=...&type=email)
+    Note right of G: completeCallback: verifyOtp(token_hash) daje sesiju<br/>(radi i na drugom uređaju) i preusmerava na /dashboard
 ```
 
 ## SD-03 Prijava Google nalogom i povezivanje naloga (UC-03)
@@ -100,7 +101,7 @@ sequenceDiagram
 
     G->>P: klik "Nastavi sa Google nalogom"
     P->>RG: navigacija
-    RG->>AS: getGoogleOAuthUrl(redirectTo = /api/auth/callback)
+    RG->>AS: getGoogleOAuthUrl(next = /dashboard)
     AS->>SA: signInWithOAuth(provider: google)
     SA-->>AS: URL za Google
     RG-->>G: 302 na Google
@@ -108,8 +109,8 @@ sequenceDiagram
     GO-->>SA: identitet korisnika
     SA-->>G: 302 na /api/auth/callback?code=...
     G->>RC: GET sa kodom
-    RC->>AS: exchangeCodeForSession(code)
-    AS->>SA: exchangeCodeForSession
+    RC->>AS: completeCallback(query, uiLocale)
+    AS->>SA: exchangeCodeForSession(code)
     alt email već postoji (nalog registrovan emailom)
         SA->>SA: poveži Google identitet sa postojećim korisnikom (automatsko povezivanje po potvrđenom emailu)
         Note over SA: isti user id, isti profil i uloga
@@ -118,7 +119,8 @@ sequenceDiagram
         T->>T: INSERT profiles (role = customer, ime i slika iz Google-a)
     end
     SA-->>AS: sesija
-    AS-->>RC: kolačić sesije postavljen
+    AS->>AS: loadActiveProfile (nalog mora biti aktivan)
+    AS-->>RC: Profile (kolačić sesije postavljen)
     RC-->>G: 302 na /dashboard
 ```
 
@@ -128,12 +130,11 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     actor K as Korisnik
-    participant F as TicketForm
+    participant F as NewTicketForm
     participant AC as ApiClient
     participant R as POST /api/tickets
     participant TS as TicketService
     participant DB as Supabase Postgres
-    participant PB as RealtimePublisher
     participant RT as Supabase Realtime
     participant AG as Agentov browser (useNotifications)
 
@@ -145,14 +146,13 @@ sequenceDiagram
     TS->>DB: rpc create_ticket(title, description, category_id, priority)
     Note over DB: u jednoj transakciji:<br/>INSERT tickets (status open, created_by = auth.uid())<br/>INSERT ticket_history (created)<br/>INSERT notifications za sve aktivne agente i admine
     DB-->>TS: ticket
-    TS->>PB: publish("staff", TICKET_UPDATED, {ticketId})
-    PB->>RT: broadcast (privatni kanal staff)
+    Note over TS: real-time događaj se ne šalje: korisnik nema pravo slanja<br/>na kanal tima, tim saznaje preko obaveštenja
     DB--)RT: INSERT notifications (postgres_changes)
     RT--)AG: novo obaveštenje (samo svoj recipient_id, RLS)
     AG->>AG: povećaj brojač, prikaži toast, osveži listu
-    TS-->>R: ticket
-    R-->>AC: 201 { ticket }
-    AC-->>F: ticket
+    TS-->>R: TicketDetail
+    R-->>AC: 201 TicketDetail
+    AC-->>F: TicketDetail
     F-->>K: preusmerenje na /tickets/{id}
 ```
 
@@ -167,27 +167,27 @@ sequenceDiagram
     participant TAP as TicketAccessPolicy
     participant STP as StatusTransitionPolicy
     participant DB as Supabase Postgres (RLS)
-    participant CL as TicketDetail (Client Component)
+    participant CL as LiveRefresh (useTicketRealtime)
     participant RP as RealtimeProvider
-    participant AC as ApiClient
 
     P->>PG: otvori /tickets/{id}
     PG->>TS: getById(id) (direktno na serveru, isti servis kao API)
-    TS->>DB: select ticket + category + creator + assignee + rating
+    TS->>DB: select ticket (RLS), pa kategorija, imena (profile_summaries) i ocena
     alt RLS ne vraća red
         TS-->>PG: throw TICKET_NOT_FOUND
         PG-->>P: not-found.tsx
     else
-        TS->>TAP: canComment / canRate / canEdit
-        TS->>STP: allowedTargets(status, actor)
-        TS-->>PG: ticket + dozvoljene akcije
-        PG-->>CL: početni podaci (SSR)
-        CL->>RP: subscribe("ticket:{id}", TICKET_UPDATED / COMMENT_ADDED)
+        TS->>TAP: permissionsFor(ticket, auth, hasRating)
+        TAP->>STP: allowedTargets(status, actor)
+        TS-->>PG: TicketDetail (sa permissions)
+        PG-->>P: HTML (SSR), dugmad samo po permissions
+        CL->>RP: subscribe("ticket:{id}", TICKET_UPDATED / TICKET_COMMENT_ADDED / TICKET_ASSIGNED)
         Note over CL,RP: kanal je privatan, Realtime Authorization<br/>dozvoljava samo onima koji vide zahtev
-        RP--)CL: događaj {ticketId, event}
-        CL->>AC: get("/api/tickets/{id}") i get(".../comments")
-        AC-->>CL: sveži podaci (kroz RBAC i RLS)
-        CL-->>P: ažuriran prikaz bez reload-a
+        RP--)CL: događaj {ticketId, actorId}
+        CL->>CL: sopstveni događaj (actorId = ja) se preskače
+        CL->>PG: router.refresh() (grupisano u 300 ms)
+        PG->>TS: getById(id) ponovo (RBAC i RLS važe)
+        PG-->>P: ažuriran prikaz bez reload-a
     end
 ```
 
@@ -213,24 +213,24 @@ sequenceDiagram
     R->>R: withApi(roles: customer, agent, admin), Zod
     R->>CS: add(ticketId, input)
     CS->>DB: select ticket (RLS)
-    CS->>TAP: canComment(ticket, auth, isInternal)
+    CS->>TAP: assertCanComment(ticket, auth, isInternal)
     alt korisnik i isInternal
-        TAP-->>CS: false
-        CS-->>R: throw FORBIDDEN_INTERNAL_COMMENT (403)
+        TAP-->>CS: throw FORBIDDEN_INTERNAL_COMMENT (403)
     else zahtev closed
-        CS-->>R: throw TICKET_CLOSED (409)
+        TAP-->>CS: throw TICKET_CLOSED (409)
     else dozvoljeno
         CS->>DB: rpc add_comment(ticket_id, body, is_internal)
         Note over DB: transakcija:<br/>INSERT ticket_comments<br/>ako je prvi javni odgovor staff-a: SET first_response_at<br/>ako vlasnik odgovara na waiting_on_customer: status in_progress + istorija<br/>INSERT notifications (javni: drugoj strani, interni: samo staff)
         DB-->>CS: comment
-        CS->>PB: publish("ticket:{id}", COMMENT_ADDED, {ticketId})
-        PB->>RT: broadcast
         alt javni komentar
-            RT--)K: događaj → ponovo učitaj komentare
+            CS->>PB: publishTicketEvent(TICKET_COMMENT_ADDED) na "ticket:{id}" i "staff"
+            PB->>RT: broadcast
+            RT--)K: događaj → router.refresh() (novi komentar)
         else interni komentar
-            Note over RT,K: korisnik dobija događaj, ali API mu<br/>ne vraća interne komentare (RLS) — nema curenja
+            CS->>PB: publishTicketEvent(TICKET_COMMENT_ADDED) samo na "staff"
+            Note over RT,K: korisnik ne dobija ni događaj, a RLS mu<br/>ne vraća interne komentare — nema curenja
         end
-        CS-->>R: comment
+        CS-->>R: CommentWithAuthor
         R-->>CF: 201
     end
 ```
@@ -253,7 +253,7 @@ sequenceDiagram
     R->>R: withApi(roles: agent, admin), Zod
     R->>TS: assign(id, assigneeId)
     TS->>DB: select ticket, select profile(assigneeId)
-    TS->>TAP: canAssign(ticket, auth, assigneeId)
+    TS->>TAP: assertCanAssign(ticket, auth, assigneeId)
     alt agent dodeljuje drugome ili zahtev već ima agenta
         TS-->>R: throw FORBIDDEN / TICKET_ALREADY_ASSIGNED
     else assignee nije staff
@@ -262,8 +262,8 @@ sequenceDiagram
         TS->>DB: rpc assign_ticket(ticket_id, assignee_id)
         Note over DB: transakcija:<br/>UPDATE assigned_to<br/>ako open: status in_progress<br/>INSERT history (assigned, status_changed)<br/>INSERT notifications (agent, vlasnik)
         DB-->>TS: ticket
-        TS->>PB: publish("ticket:{id}", TICKET_ASSIGNED)
-        TS-->>R: ticket + allowedTransitions
+        TS->>PB: publishTicketEvent(TICKET_ASSIGNED) na "ticket:{id}" i "staff"
+        TS-->>R: TicketDetail (nove permissions)
         R-->>TA: 200
     end
 ```
@@ -274,7 +274,7 @@ sequenceDiagram
 sequenceDiagram
     autonumber
     actor P as Agent / Korisnik / Admin
-    participant SS as StatusSelect
+    participant SS as TicketActions / TicketBoard
     participant R as POST /api/tickets/{id}/status
     participant TS as TicketService
     participant STP as StatusTransitionPolicy
@@ -283,7 +283,7 @@ sequenceDiagram
     participant RT as Supabase Realtime
     participant D as Druga strana (browser)
 
-    P->>SS: izabere novi status (ponuđeni su samo dozvoljeni)
+    P->>SS: klik na dugme prelaza ili prevlačenje kartice (ponuđeni su samo dozvoljeni)
     SS->>R: POST {status}
     R->>R: withApi(roles: customer, agent, admin), Zod
     R->>TS: changeStatus(id, to)
@@ -298,12 +298,12 @@ sequenceDiagram
         TS->>DB: rpc change_ticket_status(ticket_id, new_status)
         Note over DB: transakcija (funkcija ponovo proverava prelaz):<br/>UPDATE status, resolved_at / closed_at<br/>INSERT history status_changed<br/>INSERT notifications drugoj strani
         DB-->>TS: ticket
-        TS->>PB: publish("ticket:{id}", TICKET_UPDATED)
+        TS->>PB: publishTicketEvent(TICKET_UPDATED) na "ticket:{id}" i "staff"
         PB->>RT: broadcast
         RT--)D: događaj → osveži zahtev
         DB--)RT: INSERT notifications
         RT--)D: obaveštenje status_changed
-        TS-->>R: ticket + allowedTransitions
+        TS-->>R: TicketDetail (nove permissions)
         R-->>SS: 200
     end
 ```
@@ -327,8 +327,8 @@ sequenceDiagram
     R->>R: withApi(roles: customer), Zod (score 1-5)
     R->>RS: rate(ticketId, input)
     RS->>DB: select ticket + postojeća ocena
-    RS->>TAP: canRate(ticket, auth)
-    alt nije vlasnik
+    RS->>TAP: assertCanRate(ticket, auth, hasRating)
+    alt tuđi zahtev (RLS ga ne vraća)
         RS-->>R: TICKET_NOT_FOUND (404)
     else status nije resolved/closed
         RS-->>R: TICKET_NOT_RESOLVED (409)
@@ -338,7 +338,8 @@ sequenceDiagram
         RS->>DB: rpc rate_ticket(ticket_id, score, comment)
         Note over DB: INSERT ticket_ratings (UNIQUE ticket_id)<br/>INSERT history rated<br/>INSERT notification agentu
         DB-->>RS: rating
-        RS-->>R: rating
+        RS->>RS: publishTicketEvent(TICKET_UPDATED)
+        RS-->>R: TicketRating
         R-->>RF: 201
         RF-->>K: "Hvala na oceni"
     end
@@ -418,7 +419,7 @@ sequenceDiagram
     participant H as useTicketRealtime (hook)
     participant F as getRealtimeProvider()
     participant SP as SupabaseRealtimeProvider
-    participant WP as WebSocketRealtimeProvider
+    participant WP as WebSocketRealtimeProvider (rezerva)
     participant SR as Supabase Realtime
     participant WS as Sopstveni WS server (Render/Railway)
 
@@ -460,8 +461,51 @@ sequenceDiagram
     API->>RT: publish("ticket:{id}", TICKET_UPDATED, { ticketId, actorId })
     DB--)RT: INSERT notifications (postgres_changes, RLS: samo primalac)
     RT--)NB: NOTIFICATION_CREATED { ticketId, actorId }
-    NB->>NAPI: ?pageSize=5
+    NB->>NAPI: get("/notifications", {pageSize})
     NAPI-->>NB: { items, unreadCount }
     NB-->>K: brojač na zvoncetu + toast „Zahtev #1003: promenjen status (Jelena Agentić)“
     NB->>NB: router.refresh() (panel, lista, zahtev)
+```
+
+## SD-14 Kanban tabla: prevlačenje kartice (UC-16, UC-17)
+
+Tabla (`/tickets?view=board`) ne uvodi nova pravila: dozvoljene kolone računa `boardDropTargets` nad istom `StatusTransitionPolicy`, a spuštanje kartice poziva iste API rute kao dugmad na stranici zahteva. Kartica se premesti odmah (optimistički prikaz) i vraća se ako API odbije.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor A as Agent
+    participant TB as TicketBoard (@dnd-kit)
+    participant BR as board-rules.ts
+    participant AC as ApiClient (useApiAction)
+    participant R as POST /api/tickets/{id}/status ili /assign
+    participant TS as TicketService
+    participant PG as tickets/page.tsx (Server Component)
+
+    A->>TB: podigne karticu (miš, dugi pritisak ili Space)
+    TB->>BR: boardDropTargets(ticket, user)
+    BR-->>TB: dozvoljene kolone i akcija (status ili claim)
+    TB-->>A: dozvoljene kolone istaknute, najava za čitač ekrana
+    A->>TB: spusti karticu u kolonu „U obradi“
+    TB->>BR: applyBoardMoves(kolone, privremeno premeštanje)
+    TB-->>A: kartica odmah u novoj koloni
+    alt akcija claim (nedodeljen otvoren zahtev)
+        TB->>AC: post("/tickets/{id}/assign", {assigneeId: ja})
+        AC->>R: POST /assign
+        R->>TS: assign(id, userId)
+    else akcija status
+        TB->>AC: post("/tickets/{id}/status", {status})
+        AC->>R: POST /status
+        R->>TS: changeStatus(id, to)
+    end
+    alt API odbije (npr. INVALID_STATUS_TRANSITION, TICKET_ALREADY_ASSIGNED)
+        R-->>AC: 4xx { error: { code } }
+        AC-->>TB: ApiClientError
+        TB-->>A: kartica se vraća, prevedena poruka greške
+    else uspeh
+        R-->>AC: 200 TicketDetail
+        AC->>PG: router.refresh()
+        PG->>TS: list(query) za svih pet kolona (paralelno)
+        PG-->>TB: nove kolone sa servera (brišu privremena premeštanja)
+    end
 ```

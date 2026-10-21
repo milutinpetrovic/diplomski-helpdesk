@@ -184,33 +184,33 @@ flowchart LR
 
 ## 4. Spisak slučajeva korišćenja
 
-| ID    | Naziv                                       | Akteri                                       | API (vidi `06-api-i-stranice.md`)                                                                 | Stranica                              |
-| ----- | ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| UC-01 | Registracija (email + lozinka)              | Gost                                         | `POST /api/auth/register`                                                                         | `/register`                           |
-| UC-02 | Prijava (email + lozinka)                   | Gost                                         | `POST /api/auth/login`                                                                            | `/login`                              |
-| UC-03 | Prijava Google nalogom                      | Gost                                         | `GET /api/auth/google`, `GET /api/auth/callback`                                                  | `/login`, `/register`                 |
-| UC-04 | Reset lozinke                               | Gost                                         | `POST /api/auth/password/forgot`, `POST /api/auth/password/reset`                                 | `/forgot-password`, `/reset-password` |
-| UC-05 | Odjava                                      | Svi prijavljeni                              | `POST /api/auth/logout`                                                                           | meni                                  |
-| UC-06 | Pregled i izmena profila                    | Svi prijavljeni                              | `GET /api/me`, `PATCH /api/me`                                                                    | `/profile`                            |
-| UC-07 | Promena jezika (EN/SR)                      | Svi (i gost)                                 | — (kolačić `NEXT_LOCALE`) + `PATCH /api/me` za prijavljene                                        | zaglavlje                             |
-| UC-08 | Pregled obaveštenja                         | Svi prijavljeni                              | `GET /api/notifications`, `POST /api/notifications/{id}/read`, `POST /api/notifications/read-all` | zvonce u zaglavlju, `/notifications`  |
-| UC-09 | Kreiranje zahteva                           | Korisnik                                     | `POST /api/tickets`                                                                               | `/tickets/new`                        |
-| UC-10 | Pregled svojih zahteva                      | Korisnik                                     | `GET /api/tickets`                                                                                | `/tickets`                            |
-| UC-11 | Pregled detalja zahteva                     | Korisnik, Agent, Admin                       | `GET /api/tickets/{id}`, `GET /api/tickets/{id}/comments`, `GET /api/tickets/{id}/history`        | `/tickets/[id]`                       |
-| UC-12 | Dodavanje javnog komentara                  | Korisnik, Agent, Admin                       | `POST /api/tickets/{id}/comments`                                                                 | `/tickets/[id]`                       |
-| UC-13 | Zatvaranje / ponovno otvaranje svog zahteva | Korisnik                                     | `POST /api/tickets/{id}/status`                                                                   | `/tickets/[id]`                       |
-| UC-14 | Ocena rešenog zahteva (CSAT)                | Korisnik                                     | `POST /api/tickets/{id}/rating`                                                                   | `/tickets/[id]`                       |
-| UC-15 | Pregled reda rada i svih zahteva            | Agent, Admin                                 | `GET /api/tickets`                                                                                | `/tickets`, `/dashboard`              |
-| UC-16 | Preuzimanje zahteva                         | Agent, Admin                                 | `POST /api/tickets/{id}/assign` (sebi)                                                            | `/tickets/[id]`                       |
-| UC-17 | Promena statusa                             | Agent, Admin                                 | `POST /api/tickets/{id}/status`                                                                   | `/tickets/[id]`                       |
-| UC-18 | Interni komentar                            | Agent, Admin                                 | `POST /api/tickets/{id}/comments` (`isInternal: true`)                                            | `/tickets/[id]`                       |
-| UC-19 | Pretraga i filtriranje                      | Svi prijavljeni (u okviru vidljivih zahteva) | `GET /api/tickets?status=&priority=&categoryId=&assigneeId=&q=`                                   | `/tickets`                            |
-| UC-20 | Dodela zahteva agentu                       | Admin                                        | `POST /api/tickets/{id}/assign`                                                                   | `/tickets/[id]`                       |
-| UC-21 | Upravljanje korisnicima i ulogama           | Admin                                        | `GET /api/admin/users`, `PATCH /api/admin/users/{id}`                                             | `/admin/users`                        |
-| UC-22 | Upravljanje kategorijama                    | Admin                                        | `GET /api/categories`, `POST /api/admin/categories`, `PATCH /api/admin/categories/{id}`           | `/admin/categories`                   |
-| UC-23 | Pregled analitike                           | Admin                                        | `GET /api/analytics/*`                                                                            | `/analytics`                          |
-| UC-24 | Pregled API dokumentacije                   | Admin (u demo okruženju i svi)               | `GET /api/openapi`                                                                                | `/api-docs`                           |
-| UC-25 | Pregled dashboard-a                         | Svi prijavljeni                              | `GET /api/dashboard`                                                                              | `/dashboard`                          |
+| ID    | Naziv                                       | Akteri                                       | API (vidi `06-api-i-stranice.md`)                                                                 | Stranica                                                        |
+| ----- | ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| UC-01 | Registracija (email + lozinka)              | Gost                                         | `POST /api/auth/register`                                                                         | `/register`                                                     |
+| UC-02 | Prijava (email + lozinka)                   | Gost                                         | `POST /api/auth/login`                                                                            | `/login`                                                        |
+| UC-03 | Prijava Google nalogom                      | Gost                                         | `GET /api/auth/google`, `GET /api/auth/callback`                                                  | `/login`, `/register`                                           |
+| UC-04 | Reset lozinke                               | Gost                                         | `POST /api/auth/password/forgot`, `POST /api/auth/password/reset`                                 | `/forgot-password`, `/reset-password`                           |
+| UC-05 | Odjava                                      | Svi prijavljeni                              | `POST /api/auth/logout`                                                                           | meni                                                            |
+| UC-06 | Pregled i izmena profila                    | Svi prijavljeni                              | `GET /api/me`, `PATCH /api/me`                                                                    | `/profile`                                                      |
+| UC-07 | Promena jezika (EN/SR)                      | Svi (i gost)                                 | — (kolačić `NEXT_LOCALE`) + `PATCH /api/me` za prijavljene                                        | zaglavlje                                                       |
+| UC-08 | Pregled obaveštenja                         | Svi prijavljeni                              | `GET /api/notifications`, `POST /api/notifications/{id}/read`, `POST /api/notifications/read-all` | zvonce u zaglavlju, `/notifications`                            |
+| UC-09 | Kreiranje zahteva                           | Korisnik                                     | `POST /api/tickets`                                                                               | `/tickets/new`                                                  |
+| UC-10 | Pregled svojih zahteva                      | Korisnik                                     | `GET /api/tickets`                                                                                | `/tickets`                                                      |
+| UC-11 | Pregled detalja zahteva                     | Korisnik, Agent, Admin                       | `GET /api/tickets/{id}`, `GET /api/tickets/{id}/comments`, `GET /api/tickets/{id}/history`        | `/tickets/[id]`                                                 |
+| UC-12 | Dodavanje javnog komentara                  | Korisnik, Agent, Admin                       | `POST /api/tickets/{id}/comments`                                                                 | `/tickets/[id]`                                                 |
+| UC-13 | Zatvaranje / ponovno otvaranje svog zahteva | Korisnik                                     | `POST /api/tickets/{id}/status`                                                                   | `/tickets/[id]`                                                 |
+| UC-14 | Ocena rešenog zahteva (CSAT)                | Korisnik                                     | `POST /api/tickets/{id}/rating`                                                                   | `/tickets/[id]`                                                 |
+| UC-15 | Pregled reda rada i svih zahteva            | Agent, Admin                                 | `GET /api/tickets`                                                                                | `/tickets` (lista ili kanban tabla `?view=board`), `/dashboard` |
+| UC-16 | Preuzimanje zahteva                         | Agent, Admin                                 | `POST /api/tickets/{id}/assign` (sebi)                                                            | `/tickets/[id]`, kanban tabla                                   |
+| UC-17 | Promena statusa                             | Agent, Admin                                 | `POST /api/tickets/{id}/status`                                                                   | `/tickets/[id]`, kanban tabla                                   |
+| UC-18 | Interni komentar                            | Agent, Admin                                 | `POST /api/tickets/{id}/comments` (`isInternal: true`)                                            | `/tickets/[id]`                                                 |
+| UC-19 | Pretraga i filtriranje                      | Svi prijavljeni (u okviru vidljivih zahteva) | `GET /api/tickets?status=&priority=&categoryId=&assigneeId=&q=`                                   | `/tickets`                                                      |
+| UC-20 | Dodela zahteva agentu                       | Admin                                        | `POST /api/tickets/{id}/assign`                                                                   | `/tickets/[id]`                                                 |
+| UC-21 | Upravljanje korisnicima i ulogama           | Admin                                        | `GET /api/admin/users`, `PATCH /api/admin/users/{id}`                                             | `/admin/users`                                                  |
+| UC-22 | Upravljanje kategorijama                    | Admin                                        | `GET /api/categories`, `POST /api/admin/categories`, `PATCH /api/admin/categories/{id}`           | `/admin/categories`                                             |
+| UC-23 | Pregled analitike                           | Admin                                        | `GET /api/analytics/*`                                                                            | `/analytics`                                                    |
+| UC-24 | Pregled API dokumentacije                   | Admin (u demo okruženju i svi)               | `GET /api/openapi`                                                                                | `/api-docs`                                                     |
+| UC-25 | Pregled dashboard-a                         | Svi prijavljeni                              | `GET /api/dashboard`                                                                              | `/dashboard`                                                    |
 
 ## 5. Specifikacija ključnih slučajeva korišćenja
 
@@ -299,7 +299,7 @@ Format: preduslovi, osnovni tok, alternativni tokovi, postuslovi. Za slučajeve 
 
 - **Akteri:** Agent, Admin, Korisnik (samo određeni prelazi)
 - **Osnovni tok:**
-  1. Akter bira novi status iz liste; sistem nudi **samo dozvoljene prelaze** za njegovu ulogu i trenutni status (vidi tabelu prelaza u `02-baza-podataka.md`).
+  1. Akter klikne dugme prelaza na stranici zahteva ili prevuče karticu na kanban tabli (mišem, dugim pritiskom na telefonu ili tastaturom); sistem nudi **samo dozvoljene prelaze** za njegovu ulogu i trenutni status (vidi tabelu prelaza u `02-baza-podataka.md`).
   2. Sistem proverava prelaz kroz `StatusTransitionPolicy`.
   3. Sistem upisuje novi status i vremenske oznake (`resolved_at`, `closed_at`).
   4. Sistem upisuje istoriju `status_changed` (stari i novi status).
@@ -308,6 +308,8 @@ Format: preduslovi, osnovni tok, alternativni tokovi, postuslovi. Za slučajeve 
 - **Alternativni tokovi:**
   - 2a. Prelaz nije dozvoljen → `409 INVALID_STATUS_TRANSITION`.
   - 2b. Agent menja status zahteva koji nije dodeljen njemu → `403 NOT_ASSIGNED_AGENT` (admin sme uvek).
+  - 1a. Kanban: agent prevuče nedodeljen otvoren zahtev u kolonu „U obradi“ → to je preuzimanje (UC-16), ne promena statusa.
+  - 2c. Kanban: ako API odbije prelaz, kartica se vraća u prethodnu kolonu i prikazuje se prevedena greška.
 
 ### UC-14 Ocena rešenog zahteva
 
