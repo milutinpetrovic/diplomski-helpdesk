@@ -346,41 +346,42 @@ sequenceDiagram
 
 ## SD-10 Analitika (UC-23)
 
+Stranica čita podatke na serveru preko istog servisa kao API rute (kao i ostale stranice), pa nema praznog ekrana dok se grafikoni učitavaju. Rute `/api/analytics/*` ostaju za Swagger i Postman i vraćaju iste podatke.
+
 ```mermaid
 sequenceDiagram
     autonumber
     actor AD as Admin
-    participant AP as analytics/page.tsx
     participant AF as AnalyticsFilters
-    participant AC as ApiClient
-    participant R as GET /api/analytics/*
+    participant AP as analytics/page.tsx
     participant AS as AnalyticsService
     participant DB as Supabase Postgres
+    participant CH as Grafikoni (Recharts)
 
-    AD->>AP: otvori /analytics
-    AP->>AF: podrazumevani period: poslednjih 30 dana
-    par paralelni zahtevi
-        AF->>AC: get(/api/analytics/overview?from&to)
-        AC->>R: GET
-        R->>R: withApi(roles: admin), Zod (from < to, max 1 godina)
-        R->>AS: overview(range)
+    AD->>AP: otvori /analytics (bez ?from&to)
+    AP->>AP: requireCurrentUser, layout: uloga admin
+    AP->>AP: Zod (dateRangeQuerySchema), podrazumevano poslednjih 30 dana
+    par paralelni upiti
+        AP->>AS: overview(range)
         AS->>DB: rpc analytics_overview(from, to)
-        DB-->>AS: KPI
-        AS-->>R: KPI
-        R-->>AC: 200
     and
-        AF->>AC: get(/api/analytics/trend?...)
-        AC-->>AF: tačke trenda
+        AP->>AS: trend(range, day|week)
+        AS->>DB: rpc analytics_trend(...)
     and
-        AF->>AC: get(/api/analytics/agents?...)
-        AC-->>AF: učinak agenata
+        AP->>AS: agents(range)
+        AS->>DB: rpc analytics_agents(...)
     and
-        AF->>AC: get(/api/analytics/by-dimension?...)
-        AC-->>AF: raspodela
+        AP->>AS: byDimension(range, status | category | priority)
+        AS->>DB: rpc analytics_by_dimension(...)
     end
-    AF-->>AD: KpiCards + grafikoni (Recharts)
-    AD->>AF: promeni period
-    Note over AF: ponovi sve zahteve sa novim periodom
+    Note over DB: svaka funkcija proverava ulogu admin (FORBIDDEN) i period
+    AS-->>AP: KPI, tačke trenda, učinak, raspodela (dopunjeno nulama)
+    AP-->>CH: podaci kao props
+    CH-->>AD: KpiCards, trend, raspodela, CSAT, tabela agenata
+    AD->>AF: izaberi „180 d“ ili svoj period
+    AF->>AF: provera perioda (rangeError), greška ispod polja
+    AF->>AP: router.push(/analytics?from=...&to=...)
+    Note over AP: ponovi upite za novi period
 ```
 
 ## SD-11 Promena jezika (UC-07)

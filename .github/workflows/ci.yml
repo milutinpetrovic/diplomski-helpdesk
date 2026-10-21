@@ -55,3 +55,15 @@ jobs:
           name: database-types
           path: src/types/database.ts
       - run: pnpm test:db
+      # Demo podaci (scripts/seed-demo.mts): pokreću se dva puta (skripta sme da se
+      # ponovi), pa se proverava da je u bazi ceo skup demo zahteva (bez duplikata).
+      - name: Demo podaci (pnpm seed:demo)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.API_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ env.SERVICE_ROLE_KEY }}
+        run: |
+          pnpm seed:demo
+          pnpm seed:demo
+          count=$(psql "$DB_URL" -tAc "select count(*) from public.tickets where created_by::text like '00000000-0000-4000-8001-%'")
+          echo "Demo zahteva u bazi: $count"
+          test "$count" -ge 130 && test "$count" -le 200

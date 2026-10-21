@@ -60,6 +60,11 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  /* Boje grafikona analitike: 1 = „kreirani“ / jedna serija (plava), 2 = „rešeni“ (narandžasta).
+     Paleta je proverena za daltonizam (alat za validaciju palete, CVD ΔE ≥ 8).
+     Naziv --color-* da ih Tailwind zadrži: komponente ih koriste kao var(--color-chart-1). */
+  --color-chart-1: #2a78d6;
+  --color-chart-2: #eb6834;
 }
 
 /* Tamna tema. */
@@ -82,6 +87,8 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
+  --color-chart-1: #3987e5;
+  --color-chart-2: #d95926;
 }
 
 /* Osnovni stilovi: podrazumevana boja okvira i boje pozadine i teksta za ceo dokument. */

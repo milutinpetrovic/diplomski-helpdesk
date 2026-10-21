@@ -88,7 +88,9 @@
     "descriptionLength": "The description must be 10 to 5000 characters long.",
     "commentLength": "The comment must be 1 to 5000 characters long.",
     "scoreRange": "Choose a rating from 1 to 5 stars.",
-    "ratingCommentLength": "The rating comment can be at most 1000 characters long."
+    "ratingCommentLength": "The rating comment can be at most 1000 characters long.",
+    "rangeOrder": "The “from” date cannot be after the “to” date.",
+    "rangeTooLong": "The period can be at most 366 days long."
   },
   "nav": {
     "label": "Main menu",
@@ -387,5 +389,76 @@
   "apiDocs": {
     "title": "API documentation",
     "description": "All application API calls (OpenAPI 3). For calls that require sign-in, click “Authorize” and enter an access token (JWT)."
+  },
+  "analytics": {
+    "description": "Support team performance in the selected period. Times are in the Belgrade time zone.",
+    "periodLabel": "Period",
+    "preset": "{count, plural, one {Last # day} other {Last # days}}",
+    "presetShort": "{count}d",
+    "customRange": "Custom range",
+    "from": "From",
+    "to": "To",
+    "apply": "Show",
+    "rangeSummary": "{from} – {to}",
+    "invalidRange": "The period in the address is not valid, so the last 30 days are shown.",
+    "noData": "—",
+    "showTable": "Show data as a table",
+    "kpi": {
+      "label": "Key indicators",
+      "created": "New tickets",
+      "resolved": "Resolved tickets",
+      "open": "Currently open",
+      "openHint": "Does not depend on the period",
+      "firstResponse": "Average first response",
+      "resolution": "Average resolution time",
+      "csat": "Average rating (CSAT)",
+      "closedHint": "{count} closed"
+    },
+    "duration": {
+      "minutes": "{m} min",
+      "hours": "{h} h {m} min",
+      "days": "{d} d {h} h"
+    },
+    "trend": {
+      "title": "Created and resolved tickets",
+      "byDay": "Per day",
+      "byWeek": "Per week (from Monday)",
+      "created": "Created",
+      "resolved": "Resolved",
+      "date": "Date",
+      "weekOf": "Week of {date}"
+    },
+    "dimension": {
+      "title": "Breakdown of new tickets",
+      "label": "Breakdown view",
+      "status": "By status",
+      "category": "By category",
+      "priority": "By priority",
+      "group": "Group",
+      "count": "Tickets",
+      "empty": "There are no new tickets in this period."
+    },
+    "agents": {
+      "title": "Team performance",
+      "note": "Results count for the agent the ticket is currently assigned to.",
+      "member": "Team member",
+      "assigned": "Assigned",
+      "resolved": "Resolved",
+      "avgResolution": "Average resolution",
+      "avgRating": "Average rating",
+      "inactive": "inactive",
+      "ratingCount": "{count, plural, one {# rating} other {# ratings}}",
+      "sortBy": "Sort by column: {column}",
+      "empty": "No team members with results in this period."
+    },
+    "csat": {
+      "title": "Satisfaction ratings",
+      "average": "Average {average} out of 5",
+      "count": "{count, plural, one {# rating} other {# ratings}}",
+      "score": "Rating",
+      "stars": "{score, plural, one {# star} other {# stars}}",
+      "empty": "There are no ratings in this period.",
+      "countColumn": "Number of ratings"
+    }
   }
 }

@@ -88,7 +88,9 @@
     "descriptionLength": "Opis mora imati od 10 do 5000 znakova.",
     "commentLength": "Komentar mora imati od 1 do 5000 znakova.",
     "scoreRange": "Izaberite ocenu od 1 do 5 zvezdica.",
-    "ratingCommentLength": "Komentar uz ocenu može imati najviše 1000 znakova."
+    "ratingCommentLength": "Komentar uz ocenu može imati najviše 1000 znakova.",
+    "rangeOrder": "Datum „od“ ne može biti posle datuma „do“.",
+    "rangeTooLong": "Period može biti najduže 366 dana."
   },
   "nav": {
     "label": "Glavni meni",
@@ -387,5 +389,76 @@
   "apiDocs": {
     "title": "API dokumentacija",
     "description": "Svi API pozivi aplikacije (OpenAPI 3). Za pozive koji traže prijavu kliknite „Authorize“ i unesite pristupni token (JWT)."
+  },
+  "analytics": {
+    "description": "Rad tima podrške u izabranom periodu. Vreme je po beogradskoj zoni.",
+    "periodLabel": "Period",
+    "preset": "{count, plural, one {Poslednji # dan} few {Poslednja # dana} other {Poslednjih # dana}}",
+    "presetShort": "{count} d",
+    "customRange": "Svoj period",
+    "from": "Od",
+    "to": "Do",
+    "apply": "Prikaži",
+    "rangeSummary": "{from} – {to}",
+    "invalidRange": "Period u adresi nije ispravan, pa je prikazano poslednjih 30 dana.",
+    "noData": "—",
+    "showTable": "Prikaži podatke kao tabelu",
+    "kpi": {
+      "label": "Glavni pokazatelji",
+      "created": "Novi zahtevi",
+      "resolved": "Rešeni zahtevi",
+      "open": "Trenutno otvoreni",
+      "openHint": "Ne zavisi od perioda",
+      "firstResponse": "Prosečan prvi odgovor",
+      "resolution": "Prosečno rešavanje",
+      "csat": "Prosečna ocena (CSAT)",
+      "closedHint": "{count, plural, one {# zatvoren} few {# zatvorena} other {# zatvorenih}}"
+    },
+    "duration": {
+      "minutes": "{m} min",
+      "hours": "{h} h {m} min",
+      "days": "{d} d {h} h"
+    },
+    "trend": {
+      "title": "Kreirani i rešeni zahtevi",
+      "byDay": "Po danu",
+      "byWeek": "Po nedelji (od ponedeljka)",
+      "created": "Kreirani",
+      "resolved": "Rešeni",
+      "date": "Datum",
+      "weekOf": "Nedelja od {date}"
+    },
+    "dimension": {
+      "title": "Raspodela novih zahteva",
+      "label": "Prikaz raspodele",
+      "status": "Po statusu",
+      "category": "Po kategoriji",
+      "priority": "Po prioritetu",
+      "group": "Grupa",
+      "count": "Broj zahteva",
+      "empty": "U ovom periodu nema novih zahteva."
+    },
+    "agents": {
+      "title": "Učinak tima",
+      "note": "Rezultat se računa agentu kome je zahtev sada dodeljen.",
+      "member": "Član tima",
+      "assigned": "Dodeljeno",
+      "resolved": "Rešeno",
+      "avgResolution": "Prosečno rešavanje",
+      "avgRating": "Prosečna ocena",
+      "inactive": "neaktivan",
+      "ratingCount": "{count, plural, one {# ocena} few {# ocene} other {# ocena}}",
+      "sortBy": "Sortiraj po koloni: {column}",
+      "empty": "Nema članova tima sa rezultatom u ovom periodu."
+    },
+    "csat": {
+      "title": "Ocene zadovoljstva",
+      "average": "Prosek {average} od 5",
+      "count": "{count, plural, one {# ocena} few {# ocene} other {# ocena}}",
+      "score": "Ocena",
+      "stars": "{score, plural, one {# zvezdica} few {# zvezdice} other {# zvezdica}}",
+      "empty": "U ovom periodu nema ocena.",
+      "countColumn": "Broj ocena"
+    }
   }
 }
