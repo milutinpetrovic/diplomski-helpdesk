@@ -159,23 +159,24 @@ Seed kategorije: Tehnički problem, Nalog i prijava, Naplata, Zahtev za funkcion
 
 ### 3.3 `tickets` — zahtevi
 
-| Kolona                     | Tip             | Ograničenja                                  | Napomena                                      |
-| -------------------------- | --------------- | -------------------------------------------- | --------------------------------------------- |
-| `id`                       | uuid            | PK                                           |                                               |
-| `number`                   | bigint          | GENERATED ALWAYS AS IDENTITY, UNIQUE         | čitljiv broj za UI (`#1042`)                  |
-| `title`                    | text            | NOT NULL, 5–150 karaktera                    |                                               |
-| `description`              | text            | NOT NULL, 10–5000 karaktera                  |                                               |
-| `status`                   | ticket_status   | NOT NULL, default `open`                     | menja se samo preko servisa (provera prelaza) |
-| `priority`                 | ticket_priority | NOT NULL, default `medium`                   |                                               |
-| `category_id`              | uuid            | NOT NULL, FK → `categories(id)`              |                                               |
-| `created_by`               | uuid            | NOT NULL, FK → `profiles(id)`                | vlasnik (korisnik)                            |
-| `assigned_to`              | uuid            | NULL, FK → `profiles(id)` ON DELETE SET NULL | agent/admin                                   |
-| `first_response_at`        | timestamptz     | NULL                                         | prvi **javni** komentar agenta/admina         |
-| `resolved_at`              | timestamptz     | NULL                                         | poslednji prelaz u `resolved`                 |
-| `closed_at`                | timestamptz     | NULL                                         | prelaz u `closed`                             |
-| `created_at`, `updated_at` | timestamptz     | default `now()`                              |                                               |
+| Kolona                     | Tip             | Ograničenja                                  | Napomena                                                              |
+| -------------------------- | --------------- | -------------------------------------------- | --------------------------------------------------------------------- |
+| `id`                       | uuid            | PK                                           |                                                                       |
+| `number`                   | bigint          | GENERATED ALWAYS AS IDENTITY, UNIQUE         | čitljiv broj za UI (`#1042`)                                          |
+| `title`                    | text            | NOT NULL, 5–150 karaktera                    |                                                                       |
+| `description`              | text            | NOT NULL, 10–5000 karaktera                  |                                                                       |
+| `status`                   | ticket_status   | NOT NULL, default `open`                     | menja se samo preko servisa (provera prelaza)                         |
+| `priority`                 | ticket_priority | NOT NULL, default `medium`                   |                                                                       |
+| `category_id`              | uuid            | NOT NULL, FK → `categories(id)`              |                                                                       |
+| `created_by`               | uuid            | NOT NULL, FK → `profiles(id)`                | vlasnik (korisnik)                                                    |
+| `assigned_to`              | uuid            | NULL, FK → `profiles(id)` ON DELETE SET NULL | agent/admin                                                           |
+| `first_response_at`        | timestamptz     | NULL                                         | prvi **javni** komentar agenta/admina                                 |
+| `resolved_at`              | timestamptz     | NULL                                         | poslednji prelaz u `resolved`                                         |
+| `closed_at`                | timestamptz     | NULL                                         | prelaz u `closed`                                                     |
+| `created_at`, `updated_at` | timestamptz     | default `now()`                              |                                                                       |
+| `search_vector`            | tsvector        | GENERATED ALWAYS AS (...) STORED             | `to_tsvector('simple', title \|\| ' ' \|\| description)`, za pretragu |
 
-Indeksi: `(created_by)`, `(assigned_to)`, `(status)`, `(category_id)`, `(created_at desc)`, i GIN indeks za pretragu teksta: `to_tsvector('simple', title || ' ' || description)`.
+Indeksi: `(created_by)`, `(assigned_to)`, `(status)`, `(category_id)`, `(created_at desc)`, i GIN indeks nad `search_vector` (pretraga „počinje sa“; `#1042` traži po broju).
 
 ### 3.4 `ticket_comments` — komentari
 
@@ -299,6 +300,21 @@ Interne pomoćne funkcije su u šemi `private` (nije izložena kroz Supabase API
 | `private.is_status_transition_allowed(...)`       | SQL, `immutable`                             | Tabela prelaza statusa iz sekcije 4.                                                                                                                                                      |
 | `private.apply_status_change(...)`                | PL/pgSQL                                     | Promena statusa + vremenske oznake + istorija (+ obaveštenja).                                                                                                                            |
 | `private.notify(...)`, `private.log_history(...)` | SQL                                          | Upis obaveštenja (preskače autora događaja i neaktivne) i stavke istorije.                                                                                                                |
+| `private.require_active_role()`                   | PL/pgSQL                                     | Na početku svake RPC funkcije: uloga prijavljenog; greška `UNAUTHENTICATED` ili `ACCOUNT_DISABLED`.                                                                                       |
+| `private.lock_visible_ticket(id)`                 | PL/pgSQL                                     | Zaključava red zahteva (`FOR UPDATE`) do kraja transakcije; tuđi ili nepostojeći zahtev daje isto `TICKET_NOT_FOUND`.                                                                     |
+
+RPC funkcije koje poziva servisni sloj (funkcije za izmene su `security definer` i same proveravaju ulogu i pristup; greška je `raise exception using message = '<KOD>'`):
+
+| RPC                                      | Poziva                       | Šta radi u jednoj transakciji                                                      |
+| ---------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------- |
+| `create_ticket`                          | `TicketService.create`       | zahtev + istorija `created` + obaveštenja timu                                     |
+| `update_ticket`                          | `TicketService.update`       | izmena polja + istorija (`updated`, `priority_changed`, `category_changed`)        |
+| `change_ticket_status`                   | `TicketService.changeStatus` | ponovna provera prelaza + vremenske oznake + istorija + obaveštenje                |
+| `assign_ticket`                          | `TicketService.assign`       | dodela/vraćanje u red (+ `open → in_progress`) + istorija + obaveštenja            |
+| `add_comment`                            | `CommentService.add`         | komentar + `first_response_at` + `waiting_on_customer → in_progress` + obaveštenja |
+| `rate_ticket`                            | `RatingService.rate`         | ocena + istorija `rated` + obaveštenje agentu                                      |
+| `admin_update_user`                      | `UserAdminService.update`    | uloga/aktivnost naloga; zahtevi bivšeg člana tima se vraćaju u red                 |
+| `ticket_counts`, `agent_dashboard_stats` | `DashboardService`           | brojevi za kontrolni panel (pod RLS-om, `security invoker`)                        |
 
 **Zašto se poslovna logika (prelazi statusa, istorija, obaveštenja) ne radi u trigerima:** da bi bila vidljiva, testabilna i dokumentovana u servisnom sloju (TypeScript), što je lakše objasniti u radu. Baza garantuje bezbednost (RLS, CHECK, FK), a servis garantuje poslovna pravila. Gde je potrebna atomičnost (promena statusa + istorija + obaveštenja), servis poziva jednu RPC funkciju koja radi sve u jednoj transakciji — spisak u `07-uputstvo-za-implementaciju.md` (Faza 2). Isto pravilo prelaza postoji i u TypeScript-u (`StatusTransitionPolicy`) da bi UI znao koja dugmad da prikaže; baza je poslednja linija odbrane.
 

@@ -1,19 +1,20 @@
 # 03 — Dijagram klasa
 
-Ovaj dokument definiše klase, interfejse i tipove aplikacije, podeljene po slojevima. Služi za poglavlje _Arhitektura projekta_ i kao ugovor za implementaciju: nazivi klasa, metoda i fajlova ovde su obavezujući, osim ako se Milutin ne dogovori drugačije.
+Ovaj dokument opisuje klase, interfejse i tipove aplikacije, podeljene po slojevima. Služi za poglavlje _Arhitektura projekta_. Nazivi klasa, metoda i fajlova odgovaraju kodu (usklađeno u Fazi 10).
 
 ## 1. Slojevi i pravila zavisnosti
 
 ```mermaid
 flowchart TB
     UI["Prezentacioni sloj<br/>stranice app/(app), komponente, hook-ovi"]
-    API["API sloj<br/>Route Handlers app/api/**/route.ts"]
+    API["API sloj<br/>Route Handlers app/api/**/route.ts (withApi)"]
     SRV["Servisni sloj (poslovna logika)<br/>src/services/*"]
     POL["Politike i pravila<br/>src/services/policies/*"]
     INF["Infrastruktura<br/>Supabase klijenti, Realtime, greške, OpenAPI"]
     DB[("Supabase<br/>PostgreSQL + RLS + Auth + Realtime")]
 
-    UI -- "fetch preko ApiClient" --> API
+    UI -- "izmene: fetch preko ApiClient" --> API
+    UI -- "čitanje: Server Components" --> SRV
     UI -- "subscribe" --> INF
     API --> SRV
     SRV --> POL
@@ -23,15 +24,16 @@ flowchart TB
 
 Pravila:
 
-- UI **nikad** ne piše direktno u bazu; svi upisi idu kroz API rute.
-- API rute su tanke: autentifikacija, validacija ulaza (Zod), poziv servisa, mapiranje greške u HTTP odgovor. Bez poslovne logike.
+- UI **nikad** ne piše direktno u bazu; svi upisi idu kroz API rute (bez Server Actions).
+- Serverske stranice (Server Components) smeju da **čitaju** pozivom istog servisa koji koristi API ruta (npr. `/tickets` i `GET /api/tickets` koriste `TicketService.list`).
+- API rute su tanke: `withApi` radi autentifikaciju, proveru uloge, validaciju ulaza (Zod) i pretvaranje greške u HTTP odgovor; ruta samo poziva servis.
 - Servisi sadrže poslovnu logiku i ne znaju za HTTP (`Request`/`Response`); bacaju `AppError`.
-- Politike (`StatusTransitionPolicy`, `TicketAccessPolicy`) su čiste klase bez pristupa bazi — lako se testiraju unit testovima.
-- Servisi dobijaju zavisnosti kroz konstruktor (Supabase klijent, `AuthContext`, `RealtimePublisher`), da bi se u testovima mogli zameniti.
+- Politike (`StatusTransitionPolicy`, `TicketAccessPolicy`) su čiste klase bez pristupa bazi, pa se lako testiraju unit testovima.
+- Servisi dobijaju zavisnosti kroz konstruktor (`ServiceContext`: Supabase klijent, `AuthContext`, `RealtimePublisher`), da bi se u testovima mogli zameniti.
 
 ## 2. Domenski model (tipovi)
 
-Tipovi u `src/types/domain.ts`. Generisani tipovi baze (`supabase gen types`) su u `src/types/database.ts`; domenski tipovi su čitljiviji `camelCase` oblik tih redova, a mapiranje radi `src/lib/mappers.ts`.
+Enumeracije su u `src/types/domain.ts` i izvedene su iz generisanih tipova baze (`src/types/database.ts`, `pnpm db:types`). Oblici podataka koje vraća API su tipovi izvedeni iz Zod šema u `src/lib/validation/*.ts` (`z.infer`), pa su ista šema, TypeScript tip i Swagger dokumentacija uvek usklađeni. Redove iz baze (`snake_case`) u ove tipove (`camelCase`) pretvaraju funkcije u samim servisima (npr. `toProfile` u `profile-service.ts`, `toCategory` u `services/shared/lookups.ts`).
 
 ```mermaid
 classDiagram
@@ -58,6 +60,17 @@ classDiagram
         high
         urgent
     }
+    class HistoryAction {
+        <<enumeration>>
+        created
+        status_changed
+        assigned
+        unassigned
+        priority_changed
+        category_changed
+        updated
+        rated
+    }
     class NotificationType {
         <<enumeration>>
         ticket_created
@@ -76,13 +89,21 @@ classDiagram
         +UserRole role
         +Locale locale
         +boolean isActive
-        +Date createdAt
+        +string createdAt
+    }
+    class ProfileSummary {
+        +string id
+        +string fullName
+        +string avatarUrl
+        +UserRole role
     }
     class Category {
         +string id
         +string slug
         +string nameEn
         +string nameSr
+        +string descriptionEn
+        +string descriptionSr
         +boolean isActive
         +number sortOrder
     }
@@ -96,28 +117,28 @@ classDiagram
         +string categoryId
         +string createdBy
         +string assignedTo
-        +Date firstResponseAt
-        +Date resolvedAt
-        +Date closedAt
-        +Date createdAt
-        +Date updatedAt
+        +string firstResponseAt
+        +string resolvedAt
+        +string closedAt
+        +string createdAt
+        +string updatedAt
     }
-    class TicketComment {
+    class CommentWithAuthor {
         +string id
         +string ticketId
-        +string authorId
         +string body
         +boolean isInternal
-        +Date createdAt
+        +ProfileSummary author
+        +string createdAt
     }
     class TicketHistoryEntry {
         +string id
-        +string ticketId
-        +string actorId
         +HistoryAction action
+        +ProfileSummary actor
+        +ProfileSummary assignee
         +object oldValue
         +object newValue
-        +Date createdAt
+        +string createdAt
     }
     class TicketRating {
         +string id
@@ -125,52 +146,63 @@ classDiagram
         +string ratedBy
         +number score
         +string comment
-        +Date createdAt
+        +string createdAt
     }
-    class Notification {
+    class NotificationItem {
         +string id
-        +string recipientId
-        +string actorId
-        +string ticketId
         +NotificationType type
+        +string ticketId
+        +number ticketNumber
+        +string ticketTitle
+        +string actorName
         +boolean isRead
-        +Date createdAt
+        +string createdAt
     }
 
     Profile "1" --> "0..*" Ticket : kreira
     Profile "0..1" --> "0..*" Ticket : dodeljen
     Category "1" --> "0..*" Ticket
-    Ticket "1" *-- "0..*" TicketComment
+    Ticket "1" *-- "0..*" CommentWithAuthor
     Ticket "1" *-- "0..*" TicketHistoryEntry
     Ticket "1" *-- "0..1" TicketRating
-    Profile "1" --> "0..*" Notification : prima
+    Profile "1" --> "0..*" NotificationItem : prima
     Profile ..> UserRole
+    ProfileSummary ..> UserRole
     Ticket ..> TicketStatus
     Ticket ..> TicketPriority
-    Notification ..> NotificationType
+    TicketHistoryEntry ..> HistoryAction
+    NotificationItem ..> NotificationType
 ```
 
-Pomoćni tipovi (u istom fajlu):
+Datumi su u API-ju ISO tekst (`string`), a prikazuju se u zoni `Europe/Belgrade`. Polja koja mogu biti prazna (`assignedTo`, `avatarUrl`, `resolvedAt`...) su `null` kad nemaju vrednost.
 
-| Tip                   | Sadržaj                                                                                                                           |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `Locale`              | `'en' \| 'sr'`                                                                                                                    |
-| `TicketWithRelations` | `Ticket` + `category: Category` + `creator: ProfileSummary` + `assignee: ProfileSummary \| null` + `rating: TicketRating \| null` |
-| `ProfileSummary`      | `id`, `fullName`, `avatarUrl`, `role` (bez emaila za korisnike)                                                                   |
-| `TicketListFilters`   | `status?`, `priority?`, `categoryId?`, `assigneeId?` (`'me'` \| `'unassigned'` \| id), `q?`, `page`, `pageSize`, `sort`           |
-| `Paginated<T>`        | `items: T[]`, `page`, `pageSize`, `total`                                                                                         |
-| `DateRange`           | `from: Date`, `to: Date`                                                                                                          |
+Pomoćni tipovi:
+
+| Tip                 | Fajl                              | Sadržaj                                                                                                                                                   |
+| ------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Locale`            | `lib/i18n/config.ts`              | `'en' \| 'sr'`                                                                                                                                            |
+| `ProfileSummary`    | `lib/validation/common.ts`        | `id`, `fullName`, `avatarUrl`, `role` (bez emaila; čita se iz pogleda `profile_summaries`)                                                                |
+| `TicketListItem`    | `lib/validation/tickets.ts`       | Red liste: `id`, `number`, `title`, `status`, `priority`, datumi + `category`, `creator`, `assignee`                                                      |
+| `TicketDetail`      | `lib/validation/tickets.ts`       | `Ticket` + `category` + `creator` + `assignee` + `rating: TicketRating \| null` + `permissions: TicketPermissions`                                        |
+| `TicketPermissions` | `lib/validation/tickets.ts`       | `allowedTransitions`, `canComment`, `canCommentInternal`, `canAssign`, `canRate`, `canEdit` — po njima UI prikazuje dugmad                                |
+| `TicketListQuery`   | `lib/validation/tickets.ts`       | `status?` (i `unresolved`), `priority?`, `categoryId?`, `assigneeId?` (`'me'` \| `'unassigned'` \| id), `q?` (`#1042` = broj), `page`, `pageSize`, `sort` |
+| `Paginated<T>`      | `lib/validation/common.ts`        | `items: T[]`, `page`, `pageSize`, `total`                                                                                                                 |
+| `NotificationList`  | `lib/validation/notifications.ts` | `Paginated<NotificationItem>` + `unreadCount`                                                                                                             |
+| `AdminUser`         | `lib/validation/admin.ts`         | `Profile` + `openAssignedCount` (broj nerešenih zahteva dodeljenih tom članu tima)                                                                        |
+| `DashboardData`     | `lib/validation/dashboard.ts`     | Unija po polju `kind`: `customer`, `agent`, `admin` (različiti brojevi i liste po ulozi)                                                                  |
+| `DateRange`         | `lib/analytics/period.ts`         | `from`, `to` — datumi (dani po Beogradu, oba uključena, najviše 366 dana)                                                                                 |
 
 ## 3. Servisni sloj
 
-Svaki servis je klasa u `src/services/<domen>/<domen>-service.ts`. Konstruktor prima `ServiceContext`.
+Svaki servis je klasa u `src/services/<domen>/<domen>-service.ts`. Konstruktor prima `ServiceContext` (osim `AuthService`, koji radi i bez prijavljenog korisnika).
 
 ```mermaid
 classDiagram
     direction TB
 
     class ServiceContext {
-        +SupabaseClient db
+        <<interface>>
+        +DbClient db
         +AuthContext auth
         +RealtimePublisher publisher
     }
@@ -180,60 +212,60 @@ classDiagram
         +Locale locale
         +isStaff() boolean
         +isAdmin() boolean
+        +hasRole(roles) boolean
     }
 
     class AuthService {
-        +register(input: RegisterInput) Promise~void~
-        +login(input: LoginInput) Promise~Session~
-        +logout() Promise~void~
-        +getGoogleOAuthUrl(redirectTo: string) Promise~string~
-        +exchangeCodeForSession(code: string) Promise~void~
+        +register(input: RegisterInput, locale) Promise~void~
+        +login(input: LoginInput, uiLocale) Promise~LoginResult~
+        +logout(accessToken) Promise~void~
+        +getGoogleOAuthUrl(next: string) Promise~string~
+        +completeCallback(query: CallbackQuery, uiLocale) Promise~Profile~
         +requestPasswordReset(email: string) Promise~void~
-        +resetPassword(newPassword: string) Promise~void~
+        +resetPassword(password: string, accessToken) Promise~void~
     }
     class ProfileService {
         +getMe() Promise~Profile~
         +updateMe(input: UpdateProfileInput) Promise~Profile~
     }
     class TicketService {
-        +list(filters: TicketListFilters) Promise~Paginated~
-        +getById(id: string) Promise~TicketWithRelations~
-        +create(input: CreateTicketInput) Promise~Ticket~
-        +update(id: string, input: UpdateTicketInput) Promise~Ticket~
-        +changeStatus(id: string, to: TicketStatus) Promise~Ticket~
-        +assign(id: string, assigneeId: string) Promise~Ticket~
-        +getAllowedTransitions(ticket: Ticket) TicketStatus[]
-        +getHistory(id: string) Promise~TicketHistoryEntry[]~
+        +list(query: TicketListQuery) Promise~Paginated~TicketListItem~~
+        +getById(id) Promise~TicketDetail~
+        +create(input: CreateTicketInput) Promise~TicketDetail~
+        +update(id, input: UpdateTicketInput) Promise~TicketDetail~
+        +changeStatus(id, to: TicketStatus) Promise~TicketDetail~
+        +assign(id, assigneeId: string|null) Promise~TicketDetail~
+        +getHistory(id) Promise~TicketHistoryEntry[]~
     }
     class CommentService {
-        +list(ticketId: string) Promise~TicketComment[]~
-        +add(ticketId: string, input: AddCommentInput) Promise~TicketComment~
+        +list(ticketId) Promise~CommentWithAuthor[]~
+        +add(ticketId, input: AddCommentInput) Promise~CommentWithAuthor~
     }
     class RatingService {
-        +rate(ticketId: string, input: RateTicketInput) Promise~TicketRating~
+        +rate(ticketId, input: RateTicketInput) Promise~TicketRating~
     }
     class NotificationService {
-        +list(page: number) Promise~Paginated~
+        +list(query: NotificationListQuery) Promise~NotificationList~
         +countUnread() Promise~number~
-        +markRead(id: string) Promise~void~
+        +markRead(id) Promise~void~
         +markAllRead() Promise~void~
     }
     class CategoryService {
         +listActive() Promise~Category[]~
         +listAll() Promise~Category[]~
-        +create(input: CategoryInput) Promise~Category~
-        +update(id: string, input: CategoryInput) Promise~Category~
+        +create(input: CreateCategoryInput) Promise~Category~
+        +update(id, input: UpdateCategoryInput) Promise~Category~
     }
     class UserAdminService {
-        +list(filters: UserListFilters) Promise~Paginated~
-        +update(id: string, input: AdminUpdateUserInput) Promise~Profile~
-        +listAgents() Promise~ProfileSummary[]~
+        +list(query: UserListQuery) Promise~Paginated~AdminUser~~
+        +update(id, input: AdminUpdateUserInput) Promise~AdminUser~
+        +listAgents() Promise~AgentSummary[]~
     }
     class AnalyticsService {
-        +overview(range: DateRange) Promise~AnalyticsOverview~
-        +byDimension(range: DateRange, dim: Dimension) Promise~CountItem[]~
-        +agents(range: DateRange) Promise~AgentStats[]~
-        +trend(range: DateRange, bucket: Bucket) Promise~TrendPoint[]~
+        +overview(range: Partial~DateRange~) Promise~AnalyticsOverview~
+        +byDimension(range, dimension) Promise~DimensionItem[]~
+        +agents(range) Promise~AgentStats[]~
+        +trend(range, bucket?) Promise~TrendPoint[]~
     }
     class DashboardService {
         +getForCurrentUser() Promise~DashboardData~
@@ -247,11 +279,16 @@ classDiagram
     }
     class TicketAccessPolicy {
         <<policy>>
+        +actorFor(ticket, auth) TransitionActor
         +canView(ticket, auth) boolean
         +canComment(ticket, auth, isInternal) boolean
-        +canAssign(ticket, auth, assigneeId) boolean
-        +canRate(ticket, auth) boolean
+        +canAssign(ticket, auth, assigneeId?) boolean
+        +canRate(ticket, auth, hasRating) boolean
         +canEdit(ticket, auth) boolean
+        +permissionsFor(ticket, auth, hasRating) TicketPermissions
+        +assertCanComment(ticket, auth, isInternal) void
+        +assertCanAssign(ticket, auth, assigneeId) void
+        +assertCanRate(ticket, auth, hasRating) void
     }
 
     ServiceContext o-- AuthContext
@@ -266,28 +303,33 @@ classDiagram
     ProfileService o-- ServiceContext
     TicketService ..> StatusTransitionPolicy
     TicketService ..> TicketAccessPolicy
+    TicketAccessPolicy ..> StatusTransitionPolicy
     CommentService ..> TicketAccessPolicy
     RatingService ..> TicketAccessPolicy
 ```
 
 Odgovornosti:
 
-| Klasa                    | Fajl                                             | Ko sme da koristi         | Ključna pravila                                                                                                                                                      |
-| ------------------------ | ------------------------------------------------ | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AuthService`            | `services/auth/auth-service.ts`                  | gost                      | Nalog se uvek pravi kao `customer`; greške Supabase Auth mapira u `ErrorCode`. Jedini servis koji radi bez `AuthContext`.                                            |
-| `ProfileService`         | `services/profile/profile-service.ts`            | svi prijavljeni           | Ne dozvoljava izmenu `role`, `isActive`, `email`.                                                                                                                    |
-| `TicketService`          | `services/tickets/ticket-service.ts`             | svi prijavljeni           | `list` vraća samo vidljive zahteve (RLS + filter); `changeStatus` i `assign` idu kroz `StatusTransitionPolicy` i RPC funkcije; posle uspeha šalje real-time događaj. |
-| `CommentService`         | `services/comments/comment-service.ts`           | svi prijavljeni           | Korisnik ne može interni komentar; poziva RPC `add_comment` (upis + `first_response_at` + automatski prelaz `waiting_on_customer → in_progress` + obaveštenja).      |
-| `RatingService`          | `services/ratings/rating-service.ts`             | korisnik                  | Samo vlasnik, samo `resolved`/`closed`, samo jednom.                                                                                                                 |
-| `NotificationService`    | `services/notifications/notification-service.ts` | svi prijavljeni           | Samo sopstvena obaveštenja. Obaveštenja **ne kreira** ovaj servis nego RPC funkcije u bazi, atomično sa promenom.                                                    |
-| `CategoryService`        | `services/categories/category-service.ts`        | čitanje svi, izmena admin | Kategorija se ne briše nego deaktivira.                                                                                                                              |
-| `UserAdminService`       | `services/admin/user-admin-service.ts`           | admin                     | Ne može sebi da promeni ulogu ni da se deaktivira (`CANNOT_MODIFY_SELF`).                                                                                            |
-| `AnalyticsService`       | `services/analytics/analytics-service.ts`        | admin                     | Poziva RPC funkcije `analytics_*`; period max 1 godina.                                                                                                              |
-| `DashboardService`       | `services/dashboard/dashboard-service.ts`        | svi prijavljeni           | Vraća različit oblik podataka po ulozi (UC-25).                                                                                                                      |
-| `StatusTransitionPolicy` | `services/policies/status-transitions.ts`        | servisi                   | Jedini izvor istine za tabelu prelaza (`02-baza-podataka.md`, sekcija 4).                                                                                            |
-| `TicketAccessPolicy`     | `services/policies/ticket-access.ts`             | servisi                   | Ista pravila kao RLS, ali u kodu — za jasne greške (`403`) i za UI (koja dugmad prikazati).                                                                          |
+| Klasa                    | Fajl                                             | Ko sme da koristi         | Ključna pravila                                                                                                                                                                                            |
+| ------------------------ | ------------------------------------------------ | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AuthService`            | `services/auth/auth-service.ts`                  | gost                      | Nalog se uvek pravi kao `customer`; greške Supabase Auth pretvara `mapAuthError` (`auth-errors.ts`) u `ErrorCode`. Jedini servis bez `ServiceContext` (dobija Supabase klijent iz kolačića).               |
+| `ProfileService`         | `services/profile/profile-service.ts`            | svi prijavljeni           | Menja samo ime i jezik; ne dozvoljava izmenu `role`, `isActive`, `email`.                                                                                                                                  |
+| `TicketService`          | `services/tickets/ticket-service.ts`             | svi prijavljeni           | `list` vraća samo vidljive zahteve (RLS + filter, pretraga u `ticket-search.ts`); sve izmene proveravaju politike pa pozivaju RPC; vraćaju `TicketDetail` sa novim `permissions`; šalju real-time događaj. |
+| `CommentService`         | `services/comments/comment-service.ts`           | svi prijavljeni           | Korisnik ne može interni komentar; RPC `add_comment` (upis + `first_response_at` + prelaz `waiting_on_customer → in_progress` + obaveštenja). Interna beleška ide samo na kanal `staff`.                   |
+| `RatingService`          | `services/ratings/rating-service.ts`             | korisnik                  | Samo vlasnik, samo `resolved`/`closed`, samo jednom.                                                                                                                                                       |
+| `NotificationService`    | `services/notifications/notification-service.ts` | svi prijavljeni           | Samo sopstvena obaveštenja. Obaveštenja **ne pravi** ovaj servis nego RPC funkcije u bazi, atomično sa promenom.                                                                                           |
+| `CategoryService`        | `services/categories/category-service.ts`        | čitanje svi, izmena admin | Kategorija se ne briše nego deaktivira; duplikat oznake (Postgres `23505`) → `CATEGORY_SLUG_TAKEN`.                                                                                                        |
+| `UserAdminService`       | `services/admin/user-admin-service.ts`           | admin                     | Ne može sebi da promeni ulogu ni da se deaktivira (`CANNOT_MODIFY_SELF`); RPC `admin_update_user` vraća u red zahteve bivšeg člana tima.                                                                   |
+| `AnalyticsService`       | `services/analytics/analytics-service.ts`        | admin                     | Konstruktor baca `FORBIDDEN` za ne-admina; poziva RPC `analytics_*`; nule i nazive kategorija dodaje `analytics-mappers.ts`.                                                                               |
+| `DashboardService`       | `services/dashboard/dashboard-service.ts`        | svi prijavljeni           | Vraća različit oblik podataka po ulozi (UC-25); sabiranje brojeva je čista funkcija `summarizeCounts` (`dashboard-counts.ts`).                                                                             |
+| `StatusTransitionPolicy` | `services/policies/status-transitions.ts`        | servisi                   | Jedini izvor istine za tabelu prelaza (`02-baza-podataka.md`, sekcija 4). Koristi je i kanban tabla (`boardDropTargets`).                                                                                  |
+| `TicketAccessPolicy`     | `services/policies/ticket-access.ts`             | servisi                   | Ista pravila kao RLS, ali u kodu — za jasne greške (`403`) i za polje `permissions` (koja dugmad UI prikazuje).                                                                                            |
+
+Zajednički pomoćni moduli servisa (`services/shared/`): `lookups.ts` učitava imena korisnika i kategorije posebnim upitom (bez spajanja tabela), a `publish.ts` (`publishTicketEvent`) šalje real-time događaj na prave kanale i samo beleži neuspeh slanja.
 
 ## 4. Infrastruktura
+
+Infrastruktura je uglavnom skup **funkcija** (modula), ne klasa. Na dijagramu su moduli prikazani kao klase sa stereotipom `<<module>>`, a njihove funkcije kao metode.
 
 ```mermaid
 classDiagram
@@ -295,166 +337,196 @@ classDiagram
 
     class RealtimeProvider {
         <<interface>>
-        +subscribe(channel: string, event: RealtimeEvent, handler) Unsubscribe
+        +subscribe(channel, event, handler) Unsubscribe
     }
     class RealtimePublisher {
         <<interface>>
-        +publish(channel: string, event: RealtimeEvent, payload: RealtimePayload) Promise~void~
+        +publish(channel, event, payload: RealtimePayload) Promise~void~
     }
     class SupabaseRealtimeProvider {
-        -SupabaseClient client
-        +subscribe(channel, event, handler) Unsubscribe
-    }
-    class WebSocketRealtimeProvider {
-        <<rezerva, pravi se samo na zahtev mentora>>
-        -WebSocket socket
+        -DbClient client
         +subscribe(channel, event, handler) Unsubscribe
     }
     class SupabaseRealtimePublisher {
-        -SupabaseClient client
+        -DbClient client
         +publish(channel, event, payload) Promise~void~
+    }
+    class WebSocketRealtimeProvider {
+        <<rezerva, nije implementirano>>
+        +subscribe(channel, event, handler) Unsubscribe
     }
     class WebSocketRealtimePublisher {
-        <<rezerva>>
-        -string serverUrl
+        <<rezerva, nije implementirano>>
         +publish(channel, event, payload) Promise~void~
     }
-    class RealtimeEvents {
-        <<constants>>
-        TICKET_UPDATED
-        TICKET_COMMENT_ADDED
-        TICKET_ASSIGNED
-        NOTIFICATION_CREATED
-        +ticketChannel(id) string
-        +userChannel(id) string
-        +staffChannel() string
+    class realtime_index {
+        <<module>>
+        +getRealtimeProviderName() RealtimeProviderName
+        +getRealtimeProvider(client) RealtimeProvider
+        +getRealtimePublisher(client, accessToken?) RealtimePublisher
+    }
+    class realtime_events {
+        <<module>>
+        REALTIME_EVENTS
+        STAFF_CHANNEL = "staff"
+        +ticketChannel(ticketId) string
+        +userChannel(userId) string
     }
     class RealtimePayload {
-        +string ticketId
         +RealtimeEvent event
-        +string actorId
+        +string ticketId?
+        +string actorId?
     }
 
     RealtimeProvider <|.. SupabaseRealtimeProvider
     RealtimeProvider <|.. WebSocketRealtimeProvider
     RealtimePublisher <|.. SupabaseRealtimePublisher
     RealtimePublisher <|.. WebSocketRealtimePublisher
+    realtime_index ..> RealtimeProvider
+    realtime_index ..> RealtimePublisher
     RealtimePublisher ..> RealtimePayload
-    RealtimeProvider ..> RealtimeEvents
+    RealtimeProvider ..> realtime_events
 
     class AppError {
         +ErrorCode code
         +number httpStatus
-        +object details
-        +constructor(code, details?)
+        +ErrorDetails details
+        +constructor(code, details?, options?)
     }
     class ErrorCode {
         <<enumeration>>
+        VALIDATION_ERROR
+        AUTH_CALLBACK_FAILED
         UNAUTHENTICATED
+        INVALID_CREDENTIALS
         FORBIDDEN
         ACCOUNT_DISABLED
-        VALIDATION_ERROR
+        NOT_ASSIGNED_AGENT
+        FORBIDDEN_INTERNAL_COMMENT
+        EMAIL_NOT_CONFIRMED
         NOT_FOUND
         TICKET_NOT_FOUND
         INVALID_STATUS_TRANSITION
-        NOT_ASSIGNED_AGENT
         TICKET_ALREADY_ASSIGNED
         ASSIGNEE_NOT_AGENT
         TICKET_CLOSED
-        FORBIDDEN_INTERNAL_COMMENT
         ALREADY_RATED
         TICKET_NOT_RESOLVED
         EMAIL_ALREADY_REGISTERED
-        INVALID_CREDENTIALS
-        EMAIL_NOT_CONFIRMED
         CANNOT_MODIFY_SELF
+        CATEGORY_SLUG_TAKEN
         RATE_LIMITED
         INTERNAL_ERROR
     }
-    class ApiErrorHandler {
-        +toResponse(error: unknown) Response
+    class errors_handler {
+        <<module>>
+        +toErrorResponse(error, locale) Response
+        +localeFromRequest(request) Locale
     }
     AppError --> ErrorCode
-    ApiErrorHandler ..> AppError
+    errors_handler ..> AppError
 
-    class SupabaseClientFactory {
-        +createServerClient() SupabaseClient
-        +createBrowserClient() SupabaseClient
-        +createClientFromBearer(token: string) SupabaseClient
+    class supabase_clients {
+        <<module>>
+        +createServerSupabaseClient() Promise~DbClient~
+        +createBrowserSupabaseClient() DbClient
+        +createClientFromBearer(token) DbClient
+        +readBearerToken(request) string
     }
-    class AuthGuard {
-        +getAuthContext(request) Promise~AuthContext~
-        +requireAuth(request) Promise~AuthContext~
-        +requireRole(request, roles: UserRole[]) Promise~AuthContext~
+    class auth_guard {
+        <<module>>
+        +createRequestClient(request) Promise~RequestClient~
+        +getAuthContext(requestClient) Promise~AuthContext~
+        +requireRole(requestClient, roles) Promise~AuthContext~
     }
-    class ApiRoute {
-        <<helper withApi>>
-        +withApi(options, handler) RouteHandler
+    class server_session {
+        <<module>>
+        +getCurrentUser() CurrentUser
+        +requireCurrentUser() Promise~CurrentUser~
+        +requirePageRole(roles) Promise~CurrentUser~
+    }
+    class withApi {
+        <<module>>
+        +withApi(options: ApiRouteOptions, handler) RouteHandler
     }
     class ApiRouteOptions {
-        +UserRole[] roles
-        +ZodSchema body
-        +ZodSchema query
-        +ZodSchema params
+        +UserRole[] | "public" roles
+        +ZodSchema body?
+        +ZodSchema query?
+        +ZodSchema params?
+        +number successStatus?
     }
-    class OpenApiRegistry {
-        +registerRoute(definition: RouteDoc) void
-        +registerSchema(name, schema) void
-        +generateDocument() OpenAPIObject
+    class openapi {
+        <<module>>
+        +registry: OpenAPIRegistry
+        +bearerAuth
+        +errorResponses(codes) object
+        +jsonBody(schema, example?) object
+        +jsonResponse(description, schema) object
+        +generateOpenApiDocument() OpenAPIObject
     }
     class ApiClient {
         <<frontend>>
         +get(path, query?) Promise~T~
         +post(path, body?) Promise~T~
         +patch(path, body?) Promise~T~
+        +delete(path) Promise~T~
     }
     class ApiClientError {
         +ErrorCode code
         +number status
     }
 
-    AuthGuard ..> SupabaseClientFactory
-    ApiRoute ..> AuthGuard
-    ApiRoute ..> ApiErrorHandler
-    ApiRoute ..> ApiRouteOptions
+    auth_guard ..> supabase_clients
+    server_session ..> supabase_clients
+    withApi ..> auth_guard
+    withApi ..> errors_handler
+    withApi ..> ApiRouteOptions
     ApiClient ..> ApiClientError
 ```
 
-| Klasa / modul                            | Fajl                                                | Uloga                                                                                                                                                                                                 |
-| ---------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SupabaseClientFactory`                  | `lib/supabase/server.ts`, `lib/supabase/browser.ts` | Kreira Supabase klijent: iz kolačića (aplikacija), iz `Authorization: Bearer` tokena (Swagger, Postman) ili za browser. **Nikad** ne koristi `service_role` ključ u aplikaciji (samo u seed skripti). |
-| `AuthGuard`                              | `lib/auth/auth-guard.ts`                            | Čita sesiju (kolačić ili Bearer), učitava profil, proverava `isActive`, vraća `AuthContext`; baca `UNAUTHENTICATED` / `FORBIDDEN` / `ACCOUNT_DISABLED`.                                               |
-| `withApi`                                | `lib/api/with-api.ts`                               | Omotač za svaku API rutu: auth + provera uloge + Zod validacija (body/query/params) + `try/catch` → `ApiErrorHandler`. Smanjuje ponavljanje koda u rutama.                                            |
-| `AppError`, `ErrorCode`                  | `lib/errors/app-error.ts`, `lib/errors/codes.ts`    | Jedinstvene greške; svaki kod ima HTTP status i ključ prevoda `errors.<CODE>`.                                                                                                                        |
-| `ApiErrorHandler`                        | `lib/errors/handler.ts`                             | `AppError` → `{ error: { code, message, details } }` sa statusom; `ZodError` → `400 VALIDATION_ERROR` sa listom polja; sve ostalo → `500 INTERNAL_ERROR` + log.                                       |
-| `RealtimeProvider` / `RealtimePublisher` | `lib/realtime/*`                                    | Zamenljiv real-time sloj (vidi CLAUDE.md). Izbor implementacije: `NEXT_PUBLIC_REALTIME_PROVIDER`.                                                                                                     |
-| `OpenApiRegistry`                        | `lib/openapi/registry.ts`                           | Registar svih ruta i Zod šema; `GET /api/openapi` vraća `generateDocument()`. Svaka ruta registruje svoju dokumentaciju u `lib/openapi/routes/<domen>.ts`.                                            |
-| `ApiClient`                              | `lib/api/client.ts`                                 | Frontend omotač oko `fetch`: dodaje `Accept-Language`, parsira JSON, pretvara grešku u `ApiClientError` sa `code` koji UI prevodi.                                                                    |
+| Modul / klasa                            | Fajl                                                     | Uloga                                                                                                                                                                                                             |
+| ---------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Supabase klijenti                        | `lib/supabase/server.ts`, `lib/supabase/browser.ts`      | Supabase klijent iz kolačića (aplikacija), iz `Authorization: Bearer` tokena (Swagger, Postman) ili za pregledač. **Nikad** ne koristi `service_role` ključ u aplikaciji (samo u skripti `seed:demo`).            |
+| `auth-guard`                             | `lib/auth/auth-guard.ts`                                 | Za API: bira klijent (kolačić ili Bearer), učitava profil, proverava `isActive`, vraća `AuthContext`; baca `UNAUTHENTICATED` / `FORBIDDEN` / `ACCOUNT_DISABLED`.                                                  |
+| `server-session`, `route-access`         | `lib/auth/server-session.ts`, `lib/auth/route-access.ts` | Za stranice: `requireCurrentUser()` / `requirePageRole()`; `proxy.ts` preko `getAccessRedirect` samo preusmerava gosta na prijavu i prijavljenog sa stranica za goste.                                            |
+| `withApi`                                | `lib/api/with-api.ts`                                    | Omotač za svaku API rutu: auth + provera uloge + Zod validacija (body/query/params) + `try/catch` → `toErrorResponse`. Rezultat: objekat → JSON, `undefined` → 204, `Response` → prosleđuje se.                   |
+| `AppError`, `ErrorCode`                  | `lib/errors/app-error.ts`, `lib/errors/codes.ts`         | Jedinstvene greške; svaki kod ima HTTP status (`ERROR_HTTP_STATUS`) i ključ prevoda `errors.<CODE>`. `fromDbError` čita kod iz poruke RPC greške.                                                                 |
+| `errors/handler`                         | `lib/errors/handler.ts`                                  | `AppError` → `{ error: { code, message, details } }` sa statusom; `ZodError` → `400 VALIDATION_ERROR` sa listom polja; sve ostalo → `500 INTERNAL_ERROR` + log.                                                   |
+| `RealtimeProvider` / `RealtimePublisher` | `lib/realtime/*`                                         | Zamenljiv real-time sloj (vidi CLAUDE.md). Izbor implementacije: `NEXT_PUBLIC_REALTIME_PROVIDER`. WebSocket varijanta je samo rezerva (pravi se na zahtev mentora).                                               |
+| `openapi`                                | `lib/openapi/registry.ts`, `lib/openapi/document.ts`     | Registar svih ruta i Zod šema; dokumentacija rute je u `lib/openapi/routes/<domen>.ts`; `GET /api/openapi` vraća `generateOpenApiDocument()`. Iz istog dokumenta se pravi Postman kolekcija (`postman:generate`). |
+| `ApiClient`                              | `lib/api/client.ts`                                      | Frontend omotač oko `fetch`: dodaje `Accept-Language`, parsira JSON, pretvara grešku u `ApiClientError` sa `code` koji UI prevodi.                                                                                |
 
 ## 5. Frontend: hook-ovi i ključne komponente
 
 Ovo nisu klase, ali su deo arhitekture i treba ih navesti u radu.
 
-| Hook                                  | Fajl                           | Šta radi                                                                                                                  |
-| ------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `useCurrentUser()`                    | `hooks/use-current-user.ts`    | Profil i uloga prijavljenog korisnika (iz server komponente prosleđen kroz context).                                      |
-| `useNotifications(userId, unread)`    | `hooks/use-notifications.ts`   | Lista + brojač nepročitanih; pretplata na `notifications` (INSERT za mene); na događaj osvežava brojač i prikazuje toast. |
-| `useTicketRealtime(ticketId, userId)` | `hooks/use-ticket-realtime.ts` | Pretplata na kanal `ticket:<id>`; na tuđi događaj ponovo učitava stranicu (`router.refresh`).                             |
-| `useStaffRealtime(isStaff, userId)`   | `hooks/use-staff-realtime.ts`  | Agent i admin: kanal `staff`; osvežava panel, listu i stranicu zahteva.                                                   |
-| `useRealtimeEvents(subs, onEvent)`    | `hooks/use-realtime-events.ts` | Zajednička pretplata preko `RealtimeProvider` interfejsa (nikad direktno na Supabase) i odjava pri napuštanju stranice.   |
-| `useTickets(filters)`                 | `hooks/use-tickets.ts`         | Lista zahteva sa filterima i paginacijom (filteri u URL query parametrima).                                               |
+| Hook                                     | Fajl                             | Šta radi                                                                                                                      |
+| ---------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `useApiClient()`                         | `hooks/use-api-client.ts`        | Jedan `ApiClient` sa trenutnim jezikom interfejsa.                                                                            |
+| `useApiAction()`                         | `hooks/use-api-action.ts`        | Poziva API za izmenu, prikazuje poruku (toast) o uspehu ili prevedenu grešku i radi `router.refresh()`.                       |
+| `useRealtimeEvents(subs, onEvent)`       | `hooks/use-realtime-events.ts`   | Zajednička pretplata preko `RealtimeProvider` interfejsa (nikad direktno na Supabase) i odjava pri napuštanju stranice.       |
+| `useDebouncedRefresh()`                  | `hooks/use-debounced-refresh.ts` | Grupiše više događaja u jedan `router.refresh()` (300 ms).                                                                    |
+| `useNotifications(userId, serverUnread)` | `hooks/use-notifications.ts`     | Brojač nepročitanih; pretplata na `NOTIFICATION_CREATED` na kanalu `user:<id>`; na događaj osvežava brojač i prikazuje toast. |
+| `useTicketRealtime(ticketId, userId)`    | `hooks/use-ticket-realtime.ts`   | Pretplata na kanal `ticket:<id>`; na tuđi događaj ponovo učitava stranicu zahteva.                                            |
+| `useStaffRealtime(isStaff, userId)`      | `hooks/use-staff-realtime.ts`    | Agent i admin: kanal `staff`; osvežava panel, listu i kanban tablu.                                                           |
 
-| Komponenta                                                                                          | Folder                      | Opis                                                                                              |
-| --------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------- |
-| `TicketList`, `TicketFilters`, `TicketStatusBadge`, `TicketPriorityBadge`                           | `components/tickets/`       | Lista, filteri i oznake                                                                           |
-| `TicketForm`                                                                                        | `components/tickets/`       | Kreiranje/izmena (Zod šema deljena sa API-jem)                                                    |
-| `TicketDetail`, `TicketActions`, `StatusSelect`, `AssignSelect`                                     | `components/tickets/`       | Detalji; `TicketActions` prikazuje samo dozvoljene akcije (`allowedTransitions` dolazi iz API-ja) |
-| `CommentThread`, `CommentForm`                                                                      | `components/comments/`      | Interni komentari vizuelno odvojeni (druga boja + oznaka „Interno“)                               |
-| `TicketHistory`                                                                                     | `components/tickets/`       | Vremenska linija promena                                                                          |
-| `RatingForm`, `RatingStars`                                                                         | `components/ratings/`       | CSAT                                                                                              |
-| `NotificationBell`, `NotificationList`                                                              | `components/notifications/` | Zvonce sa brojačem u zaglavlju                                                                    |
-| `LanguageSwitcher`                                                                                  | `components/layout/`        | Dugme EN/SR                                                                                       |
-| `AppShell`, `Sidebar`, `Header`                                                                     | `components/layout/`        | Raspored; meni zavisi od uloge; responzivan (meni se skuplja na telefonu)                         |
-| `DashboardCustomer`, `DashboardAgent`, `DashboardAdmin`                                             | `components/dashboard/`     | Tri prikaza dashboard-a                                                                           |
-| `AnalyticsFilters`, `KpiCards`, `TicketsTrendChart`, `ByDimensionChart`, `AgentsTable`, `CsatChart` | `components/analytics/`     | Recharts grafikoni                                                                                |
-| `UsersTable`, `RoleSelect`, `CategoriesTable`, `CategoryForm`                                       | `components/admin/`         | Administracija                                                                                    |
+| Komponente                                                                                                            | Folder                      | Opis                                                                                                   |
+| --------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `TicketList`, `TicketFilters`, `TicketPagination`, `TicketBadges`, `TicketViewToggle`                                 | `components/tickets/`       | Lista zahteva, filteri u adresi, oznake statusa i prioriteta, prelaz lista ↔ tabla                     |
+| `TicketBoard`, `BoardColumn`, `BoardCard`                                                                             | `components/tickets/`       | Kanban tabla (`@dnd-kit/core`): prevlačenje mišem, dodirom i tastaturom; dozvoljene kolone iz politike |
+| `NewTicketForm`                                                                                                       | `components/tickets/`       | Kreiranje zahteva (Zod šema deljena sa API-jem)                                                        |
+| `TicketActions`                                                                                                       | `components/tickets/`       | Dugmad za prelaze, preuzimanje i dodelu; prikazuje samo ono što dozvoljava `permissions` iz API-ja     |
+| `TicketComments`, `CommentForm`                                                                                       | `components/tickets/`       | Prepiska; interni komentari vizuelno odvojeni (druga boja + oznaka „Interno“)                          |
+| `TicketHistory`                                                                                                       | `components/tickets/`       | Vremenska linija promena                                                                               |
+| `RatingForm`, `RatingStars`                                                                                           | `components/tickets/`       | CSAT ocena                                                                                             |
+| `NotificationBell`, `NotificationList`, `NotificationRow`, `LiveRefresh`                                              | `components/notifications/` | Zvonce sa brojačem u zaglavlju, stranica obaveštenja, osvežavanje bez reload-a                         |
+| `AppShell`, `NavLinks`, `MobileNav`, `PageHeader`, `LanguageSwitcher`, `LogoutButton`, `Forbidden`                    | `components/layout/`        | Raspored; meni zavisi od uloge; na telefonu meni u bočnom panelu (`sheet`); dugme SR/EN                |
+| `DashboardCustomer`, `DashboardAgent`, `DashboardAdmin`, `StatCard`, `StatusCountGrid`, `TicketMiniList`              | `components/dashboard/`     | Tri prikaza kontrolnog panela                                                                          |
+| `AnalyticsFilters`, `KpiCards`, `TicketsTrendChart`, `ByDimensionChart`, `AgentsTable`, `CsatChart`, `ChartDataTable` | `components/analytics/`     | Recharts grafikoni; uz svaki grafikon i tabelarni prikaz istih podataka (pristupačnost)                |
+| `UserTable`, `UserFilters`, `UserPagination`, `CategoryTable`, `CategoryFormDialog`                                   | `components/admin/`         | Administracija naloga i kategorija                                                                     |
+| `LoginForm`, `RegisterForm`, `ForgotPasswordForm`, `NewPasswordForm`, `GoogleButton`, `AuthDivider`                   | `components/auth/`          | Prijava, registracija, reset lozinke, Google nalog                                                     |
+| `ProfileForm`                                                                                                         | `components/profile/`       | Izmena imena i jezika                                                                                  |
+| `FormField`, `FormTextareaField`, `FormSelectField`, `FormAlert`                                                      | `components/forms/`         | Zajednička polja forme (labela, greška ispod polja)                                                    |
+| `SwaggerView`                                                                                                         | `components/api-docs/`      | Swagger UI na `/api-docs`                                                                              |
+| `button`, `card`, `dialog`, `input`, `label`, `native-select`, `popover`, `sheet`, `sonner`, `textarea`               | `components/ui/`            | Osnovne komponente (shadcn/ui)                                                                         |

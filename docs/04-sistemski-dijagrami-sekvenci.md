@@ -227,6 +227,30 @@ sequenceDiagram
     S-->>AD: kreirani i rešeni kroz vreme
 ```
 
+## SSD-13 Kanban tabla (UC-15, UC-16, UC-17)
+
+```mermaid
+sequenceDiagram
+    actor A as Agent / Admin / Korisnik
+    participant S as :Sistem
+    actor D as Druga strana
+
+    A->>S: listTickets(status) za pet kolona<br/>[GET /tickets?view=board]
+    S-->>A: kolone sa najviše 20 kartica i dozvoljenim prelazima
+    A->>S: prevuče karticu u drugu kolonu
+    alt agent i nedodeljen otvoren zahtev u „U obradi“
+        A->>S: assignTicket(ticketId, ja)<br/>[POST /api/tickets/{id}/assign]
+    else ostali dozvoljeni prelazi
+        A->>S: changeStatus(ticketId, newStatus)<br/>[POST /api/tickets/{id}/status]
+    end
+    alt sistem odbije
+        S-->>A: greška (kartica se vraća u svoju kolonu)
+    else uspeh
+        S-->>A: ažurirane kolone
+        S--)D: obaveštenje (status_changed ili ticket_assigned)
+    end
+```
+
 ## Ugovori sistemskih operacija
 
 | Operacija          | Preduslovi                                                                | Postuslovi                                                                                                                    |
