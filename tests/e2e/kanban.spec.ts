@@ -25,16 +25,24 @@ function announcement(page: Page): Locator {
 
 /**
  * Prevlačenje mišem: pritisak na karticu, pomeranje u koracima, puštanje iznad
- * kolone. Pre puštanja se čeka najava „iznad kolone …“: na sporijoj mašini
- * (CI) biblioteka inače ne stigne da prepozna kolonu pre puštanja.
+ * kolone. Dve najave se čekaju: „iznad kolone <izvor>“ (prevlačenje je stvarno
+ * počelo) i „iznad kolone <cilj>“ pre puštanja; na sporijoj mašini (CI)
+ * biblioteka inače ne stigne da prepozna kolonu pre puštanja.
  */
-async function drag(page: Page, card: Locator, target: Locator, targetName: string): Promise<void> {
+async function drag(
+  page: Page,
+  card: Locator,
+  sourceName: string,
+  target: Locator,
+  targetName: string,
+): Promise<void> {
   const from = await card.boundingBox();
   const to = await target.boundingBox();
   if (!from || !to) throw new Error("Kartica ili kolona nije vidljiva.");
   await page.mouse.move(from.x + from.width / 2, from.y + 20);
   await page.mouse.down();
   await page.mouse.move(from.x + from.width / 2 + 10, from.y + 25, { steps: 3 });
+  await expect(announcement(page)).toHaveText(new RegExp(`je iznad kolone ${sourceName}\\.$`));
   await page.mouse.move(to.x + to.width / 2, to.y + 80, { steps: 12 });
   await expect(announcement(page)).toHaveText(new RegExp(`je iznad kolone ${targetName}\\.$`));
   await page.mouse.up();
@@ -53,12 +61,17 @@ test("prevlačenje: preuzimanje, zabranjen prelaz i tastatura", async ({ browser
   await expect(column(agent, "Otvoren").locator(`a[aria-label$="${title}"]`)).toBeVisible();
 
   // Korak 2: mišem u „U obradi“ = agent preuzima zahtev.
-  await drag(agent, card, column(agent, "U obradi"), "U obradi");
+  await drag(agent, card, "Otvoren", column(agent, "U obradi"), "U obradi");
   await expect(agent.getByText("Zahtev je preuzet.")).toBeVisible();
-  await expect(column(agent, "U obradi").locator(`a[aria-label$="${title}"]`)).toBeVisible();
+  // Kartica je odmah premeštena (pre odgovora servera); ime agenta na njoj znači
+  // da je stigla i osvežena tabla sa servera, pa se kartica više neće pomeriti
+  // ispod miša dok traje sledeće prevlačenje.
+  await expect(column(agent, "U obradi").locator(`a[aria-label$="${title}"]`)).toContainText(
+    "Jelena Agentić",
+  );
 
   // Korak 3: zabranjen prelaz (agent ne zatvara zahtev) — kartica ostaje, poruka objašnjava.
-  await drag(agent, card, column(agent, "Zatvoren"), "Zatvoren");
+  await drag(agent, card, "U obradi", column(agent, "Zatvoren"), "Zatvoren");
   await expect(agent.getByText("Prelaz iz „U obradi“ u „Zatvoren“ nije dozvoljen.")).toBeVisible();
   await expect(column(agent, "U obradi").locator(`a[aria-label$="${title}"]`)).toBeVisible();
 

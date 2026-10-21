@@ -1,0 +1,3055 @@
+{
+  "info": {
+    "name": "Tehnička podrška — API",
+    "description": "Postman kolekcija za API veb aplikacije za tehničku podršku (diplomski rad, Milutin Petrović 3407). Generisana iz OpenAPI specifikacije skriptom `pnpm postman:generate` (scripts/postman-generate.mts); ne menjati ručno. Izaberite okruženje (local ili demo) i pokrenite celu kolekciju (Run collection): pozivi idu redom, prvo prijava.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "noauth"
+  },
+  "variable": [
+    {
+      "key": "customerToken",
+      "value": ""
+    },
+    {
+      "key": "customerId",
+      "value": ""
+    },
+    {
+      "key": "agentToken",
+      "value": ""
+    },
+    {
+      "key": "agentId",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "adminId",
+      "value": ""
+    },
+    {
+      "key": "logoutToken",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": ""
+    },
+    {
+      "key": "ticketId",
+      "value": ""
+    },
+    {
+      "key": "notificationId",
+      "value": ""
+    },
+    {
+      "key": "markoId",
+      "value": ""
+    },
+    {
+      "key": "newCategoryId",
+      "value": ""
+    },
+    {
+      "key": "newCategorySlug",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Prijava (Auth)",
+      "description": "Prijava kao korisnik (Ana), agent (Jelena) i admin. Token iz odgovora se čuva u promenljivama kolekcije, pa ostali pozivi rade odmah. Uz to primeri grešaka prijave.",
+      "item": [
+        {
+          "name": "Prijava kao korisnik (Ana)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\"]},\"session\":{\"type\":\"object\",\"properties\":{\"accessToken\":{\"type\":\"string\"},\"expiresAt\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]}},\"required\":[\"accessToken\",\"expiresAt\"]}},\"required\":[\"profile\",\"session\"]}));",
+                  "pm.collectionVariables.set(\"customerToken\", pm.response.json().session.accessToken);",
+                  "pm.collectionVariables.set(\"customerId\", pm.response.json().profile.id);",
+                  "pm.test(\"Uloga je customer\", () => pm.expect(pm.response.json().profile.role).to.eql(\"customer\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Prijava emailom i lozinkom\n\nProverava email i lozinku, postavlja kolačiće sesije i vraća profil i pristupni token. Token (session.accessToken) se koristi za dugme „Authorize“ u ovom Swagger-u. Demo nalozi: admin@helpdesk.test, agent@helpdesk.test, ana@helpdesk.test (lozinka Lozinka123!). Uloge: gost (bez prijave).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@helpdesk.test\",\n  \"password\": \"Lozinka123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Prijava kao agent (Jelena)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\"]},\"session\":{\"type\":\"object\",\"properties\":{\"accessToken\":{\"type\":\"string\"},\"expiresAt\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]}},\"required\":[\"accessToken\",\"expiresAt\"]}},\"required\":[\"profile\",\"session\"]}));",
+                  "pm.collectionVariables.set(\"agentToken\", pm.response.json().session.accessToken);",
+                  "pm.collectionVariables.set(\"agentId\", pm.response.json().profile.id);",
+                  "pm.test(\"Uloga je agent\", () => pm.expect(pm.response.json().profile.role).to.eql(\"agent\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Prijava emailom i lozinkom\n\nProverava email i lozinku, postavlja kolačiće sesije i vraća profil i pristupni token. Token (session.accessToken) se koristi za dugme „Authorize“ u ovom Swagger-u. Demo nalozi: admin@helpdesk.test, agent@helpdesk.test, ana@helpdesk.test (lozinka Lozinka123!). Uloge: gost (bez prijave).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"agent@helpdesk.test\",\n  \"password\": \"Lozinka123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Prijava kao admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\"]},\"session\":{\"type\":\"object\",\"properties\":{\"accessToken\":{\"type\":\"string\"},\"expiresAt\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]}},\"required\":[\"accessToken\",\"expiresAt\"]}},\"required\":[\"profile\",\"session\"]}));",
+                  "pm.collectionVariables.set(\"adminToken\", pm.response.json().session.accessToken);",
+                  "pm.collectionVariables.set(\"adminId\", pm.response.json().profile.id);",
+                  "pm.test(\"Uloga je admin\", () => pm.expect(pm.response.json().profile.role).to.eql(\"admin\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Prijava emailom i lozinkom\n\nProverava email i lozinku, postavlja kolačiće sesije i vraća profil i pristupni token. Token (session.accessToken) se koristi za dugme „Authorize“ u ovom Swagger-u. Demo nalozi: admin@helpdesk.test, agent@helpdesk.test, ana@helpdesk.test (lozinka Lozinka123!). Uloge: gost (bez prijave).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@helpdesk.test\",\n  \"password\": \"Lozinka123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Pogrešna lozinka -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške INVALID_CREDENTIALS\", () => pm.expect(error.code).to.eql(\"INVALID_CREDENTIALS\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Prijava emailom i lozinkom\n\nProverava email i lozinku, postavlja kolačiće sesije i vraća profil i pristupni token. Token (session.accessToken) se koristi za dugme „Authorize“ u ovom Swagger-u. Demo nalozi: admin@helpdesk.test, agent@helpdesk.test, ana@helpdesk.test (lozinka Lozinka123!). Uloge: gost (bez prijave).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@helpdesk.test\",\n  \"password\": \"PogresnaLozinka1!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Neispravan email -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške VALIDATION_ERROR\", () => pm.expect(error.code).to.eql(\"VALIDATION_ERROR\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Prijava emailom i lozinkom\n\nProverava email i lozinku, postavlja kolačiće sesije i vraća profil i pristupni token. Token (session.accessToken) se koristi za dugme „Authorize“ u ovom Swagger-u. Demo nalozi: admin@helpdesk.test, agent@helpdesk.test, ana@helpdesk.test (lozinka Lozinka123!). Uloge: gost (bez prijave).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nije-email\",\n  \"password\": \"Lozinka123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Registracija novog korisnika",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registracija\n\nPravi nov nalog sa ulogom customer i šalje email za potvrdu. Nalog se ne može koristiti dok korisnik ne klikne na link iz emaila. Jezik profila se uzima iz Accept-Language. Uloge: gost (bez prijave).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Postman Test\",\n  \"email\": \"postman-{{$timestamp}}{{$randomInt}}@helpdesk.test\",\n  \"password\": \"Lozinka123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Zaboravljena lozinka (šalje email)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/password/forgot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password",
+                "forgot"
+              ]
+            },
+            "description": "Zaboravljena lozinka\n\nŠalje email sa linkom za postavljanje nove lozinke. Uvek vraća 204, i kad nalog ne postoji, da se ne bi otkrilo koji emailovi imaju nalog. Uloge: gost.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@helpdesk.test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Nova lozinka bez prijave -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške UNAUTHENTICATED\", () => pm.expect(error.code).to.eql(\"UNAUTHENTICATED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/password/reset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password",
+                "reset"
+              ]
+            },
+            "description": "Nova lozinka\n\nPostavlja novu lozinku prijavljenom korisniku: posle linka iz emaila (sesija iz linka) ili sa stranice profila. Lozinka: najmanje 8 znakova, bar jedno slovo i jedan broj. Uloge: customer, agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"NovaLozinka123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Nova lozinka prekratka -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške VALIDATION_ERROR\", () => pm.expect(error.code).to.eql(\"VALIDATION_ERROR\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/password/reset",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password",
+                "reset"
+              ]
+            },
+            "description": "Nova lozinka\n\nPostavlja novu lozinku prijavljenom korisniku: posle linka iz emaila (sesija iz linka) ili sa stranice profila. Lozinka: najmanje 8 znakova, bar jedno slovo i jedan broj. Uloge: customer, agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"kratka\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Google prijava preusmerava",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 302\", () => pm.response.to.have.status(302));",
+                  "pm.test(\"Ima adresu preusmerenja\", () => pm.response.to.have.header(\"Location\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/google",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "google"
+              ]
+            },
+            "description": "Prijava Google nalogom (početak)\n\nPreusmerava pregledač na Google stranicu za prijavu (preko Supabase Auth-a). Posle prijave Google vraća korisnika na /api/auth/callback. Ako već postoji potvrđen nalog sa istim emailom, Google se vezuje za taj nalog. Otvara se kao link u pregledaču, ne iz Swagger-a. Uloge: gost."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true,
+            "followRedirects": false
+          }
+        },
+        {
+          "name": "Callback bez koda vraća na prijavu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 302\", () => pm.response.to.have.status(302));",
+                  "pm.test(\"Preusmerava na /login sa greškom\", () => pm.expect(pm.response.headers.get(\"Location\")).to.include(\"/login\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/callback",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "callback"
+              ]
+            },
+            "description": "Povratak posle Google prijave ili linka iz emaila\n\nZamenjuje code (Google) ili token_hash + type (link iz emaila: potvrda naloga ili reset lozinke) za sesiju i preusmerava na `next`. Kod greške preusmerava na /login?error=<KOD> (npr. AUTH_CALLBACK_FAILED kad je link istekao). Uloge: gost."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true,
+            "followRedirects": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Profil",
+      "description": "Profil prijavljenog korisnika.",
+      "item": [
+        {
+          "name": "Moj profil (korisnik)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me"
+              ]
+            },
+            "description": "Moj profil\n\nVraća profil prijavljenog korisnika. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Profil bez prijave -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške UNAUTHENTICATED\", () => pm.expect(error.code).to.eql(\"UNAUTHENTICATED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me"
+              ]
+            },
+            "description": "Moj profil\n\nVraća profil prijavljenog korisnika. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Izmena profila (jezik)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "me"
+              ]
+            },
+            "description": "Izmena mog profila\n\nMenja ime i/ili jezik prijavljenog korisnika. Ostala polja (uloga, email, aktivnost) nisu dozvoljena i vraćaju 400; ulogu menja samo admin. Uloge: customer, agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"locale\": \"sr\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Zahtevi (Tickets)",
+      "description": "Ceo život jednog zahteva: korisnik ga prijavi, agent preuzme, odgovori, doda internu belešku i označi kao rešen, korisnik oceni. Uz to primeri zabrana (RBAC).",
+      "item": [
+        {
+          "name": "Kategorije (za novi zahtev)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]}}));",
+                  "pm.collectionVariables.set(\"categoryId\", pm.response.json()[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            },
+            "description": "Kategorije zahteva\n\nAktivne kategorije redom za prikaz (nazivi na srpskom i engleskom). Sa includeInactive=true i neaktivne, samo za admina (ostali dobijaju 403). Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Korisnik prijavljuje zahtev",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"categoryId\":{\"type\":\"string\"},\"createdBy\":{\"type\":\"string\"},\"assignedTo\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"firstResponseAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"resolvedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"closedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"},\"category\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]},\"creator\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"assignee\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"rating\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"ratedBy\":{\"type\":\"string\"},\"score\":{\"type\":\"integer\"},\"comment\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"ticketId\",\"ratedBy\",\"score\",\"comment\",\"createdAt\"]},{\"type\":\"null\"}]},\"permissions\":{\"type\":\"object\",\"properties\":{\"allowedTransitions\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]}},\"canComment\":{\"type\":\"boolean\"},\"canCommentInternal\":{\"type\":\"boolean\"},\"canAssign\":{\"type\":\"boolean\"},\"canRate\":{\"type\":\"boolean\"},\"canEdit\":{\"type\":\"boolean\"}},\"required\":[\"allowedTransitions\",\"canComment\",\"canCommentInternal\",\"canAssign\",\"canRate\",\"canEdit\"]}},\"required\":[\"id\",\"number\",\"title\",\"description\",\"status\",\"priority\",\"categoryId\",\"createdBy\",\"assignedTo\",\"firstResponseAt\",\"resolvedAt\",\"closedAt\",\"createdAt\",\"updatedAt\",\"category\",\"creator\",\"assignee\",\"rating\",\"permissions\"]}));",
+                  "pm.collectionVariables.set(\"ticketId\", pm.response.json().id);",
+                  "pm.test(\"Novi zahtev je otvoren\", () => pm.expect(pm.response.json().status).to.eql(\"open\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "Novi zahtev\n\nKorisnik prijavljuje problem. Zahtev počinje u statusu open, nedodeljen; tim podrške dobija obaveštenje. Kategorija mora biti aktivna. Uloga: customer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman: ne radi VPN\",\n  \"description\": \"Od jutros VPN javlja grešku pri povezivanju.\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"priority\": \"high\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent ne prijavljuje zahteve -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške FORBIDDEN\", () => pm.expect(error.code).to.eql(\"FORBIDDEN\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "Novi zahtev\n\nKorisnik prijavljuje problem. Zahtev počinje u statusu open, nedodeljen; tim podrške dobija obaveštenje. Kategorija mora biti aktivna. Uloga: customer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Agent\",\n  \"description\": \"Agent ne sme.\",\n  \"categoryId\": \"{{categoryId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Prazan naslov -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške VALIDATION_ERROR\", () => pm.expect(error.code).to.eql(\"VALIDATION_ERROR\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "Novi zahtev\n\nKorisnik prijavljuje problem. Zahtev počinje u statusu open, nedodeljen; tim podrške dobija obaveštenje. Kategorija mora biti aktivna. Uloga: customer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"\",\n  \"description\": \"Opis.\",\n  \"categoryId\": \"{{categoryId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Lista mojih zahteva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"},\"category\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]},\"creator\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"assignee\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\",\"category\",\"creator\",\"assignee\"]}},\"page\":{\"type\":\"integer\"},\"pageSize\":{\"type\":\"integer\"},\"total\":{\"type\":\"integer\"}},\"required\":[\"items\",\"page\",\"pageSize\",\"total\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "Lista zahteva\n\nStranica zahteva sa filterima (status, prioritet, kategorija, dodeljen), pretragom po naslovu i opisu (ili #broju) i sortiranjem. Korisnik dobija samo svoje zahteve, agent i admin sve. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Lista bez prijave -> 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 401\", () => pm.response.to.have.status(401));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške UNAUTHENTICATED\", () => pm.expect(error.code).to.eql(\"UNAUTHENTICATED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "Lista zahteva\n\nStranica zahteva sa filterima (status, prioritet, kategorija, dodeljen), pretragom po naslovu i opisu (ili #broju) i sortiranjem. Korisnik dobija samo svoje zahteve, agent i admin sve. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Detalji zahteva",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"categoryId\":{\"type\":\"string\"},\"createdBy\":{\"type\":\"string\"},\"assignedTo\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"firstResponseAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"resolvedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"closedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"},\"category\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]},\"creator\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"assignee\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"rating\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"ratedBy\":{\"type\":\"string\"},\"score\":{\"type\":\"integer\"},\"comment\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"ticketId\",\"ratedBy\",\"score\",\"comment\",\"createdAt\"]},{\"type\":\"null\"}]},\"permissions\":{\"type\":\"object\",\"properties\":{\"allowedTransitions\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]}},\"canComment\":{\"type\":\"boolean\"},\"canCommentInternal\":{\"type\":\"boolean\"},\"canAssign\":{\"type\":\"boolean\"},\"canRate\":{\"type\":\"boolean\"},\"canEdit\":{\"type\":\"boolean\"}},\"required\":[\"allowedTransitions\",\"canComment\",\"canCommentInternal\",\"canAssign\",\"canRate\",\"canEdit\"]}},\"required\":[\"id\",\"number\",\"title\",\"description\",\"status\",\"priority\",\"categoryId\",\"createdBy\",\"assignedTo\",\"firstResponseAt\",\"resolvedAt\",\"closedAt\",\"createdAt\",\"updatedAt\",\"category\",\"creator\",\"assignee\",\"rating\",\"permissions\"]}));",
+                  "pm.test(\"Korisnik sme da menja svoj otvoren zahtev\", () => pm.expect(pm.response.json().permissions.canEdit).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}"
+              ]
+            },
+            "description": "Detalji zahteva\n\nZahtev sa kategorijom, podnosiocem, dodeljenim agentom, ocenom i poljem permissions (šta prijavljeni korisnik sme: dozvoljeni statusi, komentar, interna beleška, dodela, ocena, izmena). Tuđ zahtev vraća 404. Uloge: customer (svoj), agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Nepostojeći zahtev -> 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 404\", () => pm.response.to.have.status(404));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške TICKET_NOT_FOUND\", () => pm.expect(error.code).to.eql(\"TICKET_NOT_FOUND\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/00000000-0000-4000-8000-0000000000ff",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "00000000-0000-4000-8000-0000000000ff"
+              ]
+            },
+            "description": "Detalji zahteva\n\nZahtev sa kategorijom, podnosiocem, dodeljenim agentom, ocenom i poljem permissions (šta prijavljeni korisnik sme: dozvoljeni statusi, komentar, interna beleška, dodela, ocena, izmena). Tuđ zahtev vraća 404. Uloge: customer (svoj), agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Korisnik menja naslov",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"categoryId\":{\"type\":\"string\"},\"createdBy\":{\"type\":\"string\"},\"assignedTo\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"firstResponseAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"resolvedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"closedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"},\"category\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]},\"creator\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"assignee\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"rating\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"ratedBy\":{\"type\":\"string\"},\"score\":{\"type\":\"integer\"},\"comment\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"ticketId\",\"ratedBy\",\"score\",\"comment\",\"createdAt\"]},{\"type\":\"null\"}]},\"permissions\":{\"type\":\"object\",\"properties\":{\"allowedTransitions\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]}},\"canComment\":{\"type\":\"boolean\"},\"canCommentInternal\":{\"type\":\"boolean\"},\"canAssign\":{\"type\":\"boolean\"},\"canRate\":{\"type\":\"boolean\"},\"canEdit\":{\"type\":\"boolean\"}},\"required\":[\"allowedTransitions\",\"canComment\",\"canCommentInternal\",\"canAssign\",\"canRate\",\"canEdit\"]}},\"required\":[\"id\",\"number\",\"title\",\"description\",\"status\",\"priority\",\"categoryId\",\"createdBy\",\"assignedTo\",\"firstResponseAt\",\"resolvedAt\",\"closedAt\",\"createdAt\",\"updatedAt\",\"category\",\"creator\",\"assignee\",\"rating\",\"permissions\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}"
+              ]
+            },
+            "description": "Izmena zahteva\n\nMenja naslov, opis, kategoriju ili prioritet (bar jedno polje). Korisnik sme samo naslov i opis svog zahteva dok je open; agent samo dodeljen zahtev; admin svaki. Zatvoren zahtev se ne menja. Uloge: customer, agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Postman: ne radi VPN na laptopu\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Tim podrške (za dodelu)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"openAssignedCount\":{\"type\":\"integer\"}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\",\"openAssignedCount\"]}}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "agents"
+              ]
+            },
+            "description": "Agenti za dodelu\n\nAktivni agenti i admini, po imenu, sa brojem dodeljenih zahteva koji nisu rešeni ni zatvoreni (za padajuću listu „Dodeli agentu“). Uloge: agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent preuzima zahtev",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"categoryId\":{\"type\":\"string\"},\"createdBy\":{\"type\":\"string\"},\"assignedTo\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"firstResponseAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"resolvedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"closedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"},\"category\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]},\"creator\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"assignee\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"rating\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"ratedBy\":{\"type\":\"string\"},\"score\":{\"type\":\"integer\"},\"comment\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"ticketId\",\"ratedBy\",\"score\",\"comment\",\"createdAt\"]},{\"type\":\"null\"}]},\"permissions\":{\"type\":\"object\",\"properties\":{\"allowedTransitions\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]}},\"canComment\":{\"type\":\"boolean\"},\"canCommentInternal\":{\"type\":\"boolean\"},\"canAssign\":{\"type\":\"boolean\"},\"canRate\":{\"type\":\"boolean\"},\"canEdit\":{\"type\":\"boolean\"}},\"required\":[\"allowedTransitions\",\"canComment\",\"canCommentInternal\",\"canAssign\",\"canRate\",\"canEdit\"]}},\"required\":[\"id\",\"number\",\"title\",\"description\",\"status\",\"priority\",\"categoryId\",\"createdBy\",\"assignedTo\",\"firstResponseAt\",\"resolvedAt\",\"closedAt\",\"createdAt\",\"updatedAt\",\"category\",\"creator\",\"assignee\",\"rating\",\"permissions\"]}));",
+                  "pm.test(\"Zahtev je dodeljen agentu\", () => pm.expect(pm.response.json().assignedTo).to.eql(pm.collectionVariables.get(\"agentId\")));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/assign",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "assign"
+              ]
+            },
+            "description": "Dodela zahteva\n\nAgent preuzima nedodeljen zahtev (assigneeId = njegov ID). Admin dodeljuje bilo kom aktivnom agentu/adminu ili oslobađa zahtev (assigneeId = null). Dodela otvorenog zahteva ga prebacuje u in_progress; oslobađanje zahteva u radu ga vraća u open. Uloge: agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assigneeId\": \"{{agentId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent odgovara korisniku",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"isInternal\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"},\"author\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]}},\"required\":[\"id\",\"ticketId\",\"body\",\"isInternal\",\"createdAt\",\"author\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "comments"
+              ]
+            },
+            "description": "Novi komentar\n\nDodaje javni komentar ili internu belešku (isInternal, samo agent i admin). Prvi javni odgovor tima upisuje firstResponseAt; kad vlasnik odgovori na zahtev u statusu waiting_on_customer, zahtev se vraća u in_progress. Zatvoren zahtev se ne komentariše. Uloge: customer (svoj zahtev), agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Da li ste probali ponovo da pokrenete VPN klijent?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent dodaje internu belešku",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"isInternal\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"},\"author\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]}},\"required\":[\"id\",\"ticketId\",\"body\",\"isInternal\",\"createdAt\",\"author\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "comments"
+              ]
+            },
+            "description": "Novi komentar\n\nDodaje javni komentar ili internu belešku (isInternal, samo agent i admin). Prvi javni odgovor tima upisuje firstResponseAt; kad vlasnik odgovori na zahtev u statusu waiting_on_customer, zahtev se vraća u in_progress. Zatvoren zahtev se ne komentariše. Uloge: customer (svoj zahtev), agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Interno: proveriti sertifikat na VPN serveru.\",\n  \"isInternal\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Korisnik ne piše interne beleške -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške FORBIDDEN_INTERNAL_COMMENT\", () => pm.expect(error.code).to.eql(\"FORBIDDEN_INTERNAL_COMMENT\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "comments"
+              ]
+            },
+            "description": "Novi komentar\n\nDodaje javni komentar ili internu belešku (isInternal, samo agent i admin). Prvi javni odgovor tima upisuje firstResponseAt; kad vlasnik odgovori na zahtev u statusu waiting_on_customer, zahtev se vraća u in_progress. Zatvoren zahtev se ne komentariše. Uloge: customer (svoj zahtev), agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Pokušaj interne beleške.\",\n  \"isInternal\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Korisnik ne vidi interne beleške",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"isInternal\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"},\"author\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]}},\"required\":[\"id\",\"ticketId\",\"body\",\"isInternal\",\"createdAt\",\"author\"]}}));",
+                  "pm.test(\"Nijedan komentar nije interni\", () => pm.expect(pm.response.json().filter((c) => c.isInternal)).to.have.length(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "comments"
+              ]
+            },
+            "description": "Komentari na zahtevu\n\nKomentari od najstarijeg, sa imenom autora. Korisnik ne dobija interne beleške (isInternal = true) — to garantuje RLS politika u bazi. Uloge: customer (svoj zahtev), agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent vidi i interne beleške",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"body\":{\"type\":\"string\"},\"isInternal\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"},\"author\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]}},\"required\":[\"id\",\"ticketId\",\"body\",\"isInternal\",\"createdAt\",\"author\"]}}));",
+                  "pm.test(\"Interna beleška je u listi\", () => pm.expect(pm.response.json().some((c) => c.isInternal)).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "comments"
+              ]
+            },
+            "description": "Komentari na zahtevu\n\nKomentari od najstarijeg, sa imenom autora. Korisnik ne dobija interne beleške (isInternal = true) — to garantuje RLS politika u bazi. Uloge: customer (svoj zahtev), agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent ne zatvara zahtev u obradi -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške INVALID_STATUS_TRANSITION\", () => pm.expect(error.code).to.eql(\"INVALID_STATUS_TRANSITION\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "status"
+              ]
+            },
+            "description": "Promena statusa\n\nMenja status po tabeli dozvoljenih prelaza (docs/02, sekcija 4). Korisnik: otkazivanje (open → closed), potvrda (resolved → closed), ponovno otvaranje (resolved → in_progress). Agent: samo dodeljen zahtev. Admin: svi prelazi, i closed → open. Ulazak u resolved/closed upisuje resolvedAt/closedAt. Uloge: customer, agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"closed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent označava zahtev kao rešen",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"description\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"categoryId\":{\"type\":\"string\"},\"createdBy\":{\"type\":\"string\"},\"assignedTo\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"firstResponseAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"resolvedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"closedAt\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"},\"category\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]},\"creator\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"assignee\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"rating\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"ratedBy\":{\"type\":\"string\"},\"score\":{\"type\":\"integer\"},\"comment\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"ticketId\",\"ratedBy\",\"score\",\"comment\",\"createdAt\"]},{\"type\":\"null\"}]},\"permissions\":{\"type\":\"object\",\"properties\":{\"allowedTransitions\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]}},\"canComment\":{\"type\":\"boolean\"},\"canCommentInternal\":{\"type\":\"boolean\"},\"canAssign\":{\"type\":\"boolean\"},\"canRate\":{\"type\":\"boolean\"},\"canEdit\":{\"type\":\"boolean\"}},\"required\":[\"allowedTransitions\",\"canComment\",\"canCommentInternal\",\"canAssign\",\"canRate\",\"canEdit\"]}},\"required\":[\"id\",\"number\",\"title\",\"description\",\"status\",\"priority\",\"categoryId\",\"createdBy\",\"assignedTo\",\"firstResponseAt\",\"resolvedAt\",\"closedAt\",\"createdAt\",\"updatedAt\",\"category\",\"creator\",\"assignee\",\"rating\",\"permissions\"]}));",
+                  "pm.test(\"Status je rešen\", () => pm.expect(pm.response.json().status).to.eql(\"resolved\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "status"
+              ]
+            },
+            "description": "Promena statusa\n\nMenja status po tabeli dozvoljenih prelaza (docs/02, sekcija 4). Korisnik: otkazivanje (open → closed), potvrda (resolved → closed), ponovno otvaranje (resolved → in_progress). Agent: samo dodeljen zahtev. Admin: svi prelazi, i closed → open. Ulazak u resolved/closed upisuje resolvedAt/closedAt. Uloge: customer, agent, admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Korisnik ocenjuje rešenje (CSAT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"ticketId\":{\"type\":\"string\"},\"ratedBy\":{\"type\":\"string\"},\"score\":{\"type\":\"integer\"},\"comment\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"ticketId\",\"ratedBy\",\"score\",\"comment\",\"createdAt\"]},{\"type\":\"null\"}]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/rating",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "rating"
+              ]
+            },
+            "description": "Ocena rešenog zahteva\n\nVlasnik ocenjuje rešen ili zatvoren zahtev sa 1–5 zvezdica i opcionim komentarom, najviše jednom. Dodeljeni agent dobija obaveštenje. Uloga: customer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 5,\n  \"comment\": \"Brzo i ljubazno, hvala!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Druga ocena istog zahteva -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške ALREADY_RATED\", () => pm.expect(error.code).to.eql(\"ALREADY_RATED\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/rating",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "rating"
+              ]
+            },
+            "description": "Ocena rešenog zahteva\n\nVlasnik ocenjuje rešen ili zatvoren zahtev sa 1–5 zvezdica i opcionim komentarom, najviše jednom. Dodeljeni agent dobija obaveštenje. Uloga: customer.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"score\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Istorija promena",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"action\":{\"type\":\"string\",\"enum\":[\"created\",\"status_changed\",\"assigned\",\"unassigned\",\"priority_changed\",\"category_changed\",\"updated\",\"rated\"]},\"actor\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"assignee\":{\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\"]},{\"type\":\"null\"}]},\"oldValue\":{\"anyOf\":[{\"type\":\"object\",\"additionalProperties\":{\"anyOf\":[{},{\"type\":\"null\"}]}},{\"type\":\"null\"}]},\"newValue\":{\"anyOf\":[{\"type\":\"object\",\"additionalProperties\":{\"anyOf\":[{},{\"type\":\"null\"}]}},{\"type\":\"null\"}]},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"action\",\"actor\",\"assignee\",\"oldValue\",\"newValue\",\"createdAt\"]}}));",
+                  "pm.test(\"Istorija nije prazna\", () => pm.expect(pm.response.json().length).to.be.above(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tickets/{{ticketId}}/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticketId}}",
+                "history"
+              ]
+            },
+            "description": "Istorija zahteva\n\nSve promene na zahtevu, od najstarije: ko (actor; null = sistem), šta (action, stara i nova vrednost) i kada. Ne sadrži tekst komentara. Uloge: customer (svoj), agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Obaveštenja",
+      "description": "Obaveštenja koja je korisnik dobio dok je agent radio na zahtevu.",
+      "item": [
+        {
+          "name": "Lista obaveštenja",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"type\":{\"type\":\"string\",\"enum\":[\"ticket_created\",\"ticket_assigned\",\"status_changed\",\"comment_added\",\"internal_comment_added\",\"ticket_rated\"]},\"ticketId\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"ticketNumber\":{\"anyOf\":[{\"type\":\"integer\"},{\"type\":\"null\"}]},\"ticketTitle\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"actorName\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isRead\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"type\",\"ticketId\",\"ticketNumber\",\"ticketTitle\",\"actorName\",\"isRead\",\"createdAt\"]}},\"page\":{\"type\":\"integer\"},\"pageSize\":{\"type\":\"integer\"},\"total\":{\"type\":\"integer\"},\"unreadCount\":{\"type\":\"integer\"}},\"required\":[\"items\",\"page\",\"pageSize\",\"total\",\"unreadCount\"]}));",
+                  "pm.collectionVariables.set(\"notificationId\", pm.response.json().items[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications"
+              ]
+            },
+            "description": "Lista obaveštenja\n\nObaveštenja prijavljenog korisnika, najnovija prva, sa brojem nepročitanih. Obaveštenja pravi baza kad se zahtev kreira, dodeli, promeni status, dobije komentar ili ocenu. Tekst ne dolazi iz API-ja: interfejs ga sastavlja iz prevoda po polju type. Nova obaveštenja stižu i u realnom vremenu (Supabase Realtime). Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Označi jedno kao pročitano",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": "Označi obaveštenje kao pročitano\n\nOznačava jedno sopstveno obaveštenje kao pročitano. Tuđe ili nepostojeće obaveštenje daje 404. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Označi sva kao pročitana",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read-all",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": "Označi sva obaveštenja kao pročitana\n\nOznačava sva sopstvena nepročitana obaveštenja kao pročitana. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Kontrolni panel",
+      "description": "Isti poziv daje drugačiji panel za svaku ulogu (polje kind).",
+      "item": [
+        {
+          "name": "Panel (customer)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"oneOf\":[{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"customer\"]},\"statusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"waitingOnMe\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"toRate\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"recent\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}}},\"required\":[\"kind\",\"statusCounts\",\"waitingOnMe\",\"toRate\",\"recent\"]},{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"agent\"]},\"myStatusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"unassignedCount\":{\"type\":\"integer\"},\"urgentCount\":{\"type\":\"integer\"},\"unassignedQueue\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"urgent\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"rating\":{\"type\":\"object\",\"properties\":{\"average\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"count\":{\"type\":\"integer\"}},\"required\":[\"average\",\"count\"]},\"resolvedCount\":{\"type\":\"integer\"}},\"required\":[\"kind\",\"myStatusCounts\",\"unassignedCount\",\"urgentCount\",\"unassignedQueue\",\"urgent\",\"rating\",\"resolvedCount\"]},{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"admin\"]},\"statusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"openCount\":{\"type\":\"integer\"},\"unassignedCount\":{\"type\":\"integer\"},\"urgentCount\":{\"type\":\"integer\"},\"workload\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"openAssignedCount\":{\"type\":\"integer\"}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\",\"openAssignedCount\"]}},\"unassignedQueue\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}}},\"required\":[\"kind\",\"statusCounts\",\"openCount\",\"unassignedCount\",\"urgentCount\",\"workload\",\"unassignedQueue\"]}]}));",
+                  "pm.test(\"Panel je za ulogu customer\", () => pm.expect(pm.response.json().kind).to.eql(\"customer\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard"
+              ]
+            },
+            "description": "Kontrolni panel\n\nBrojevi i kratke liste zahteva za prijavljenog korisnika. Oblik zavisi od uloge (polje kind): korisnik dobija svoje zahteve po statusu i šta čeka njega; agent svoje zahteve, red nedodeljenih, hitne i svoju prosečnu ocenu; admin ukupne brojeve i opterećenje po agentu. Sve se računa pod RLS-om. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Panel (agent)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"oneOf\":[{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"customer\"]},\"statusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"waitingOnMe\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"toRate\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"recent\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}}},\"required\":[\"kind\",\"statusCounts\",\"waitingOnMe\",\"toRate\",\"recent\"]},{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"agent\"]},\"myStatusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"unassignedCount\":{\"type\":\"integer\"},\"urgentCount\":{\"type\":\"integer\"},\"unassignedQueue\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"urgent\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"rating\":{\"type\":\"object\",\"properties\":{\"average\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"count\":{\"type\":\"integer\"}},\"required\":[\"average\",\"count\"]},\"resolvedCount\":{\"type\":\"integer\"}},\"required\":[\"kind\",\"myStatusCounts\",\"unassignedCount\",\"urgentCount\",\"unassignedQueue\",\"urgent\",\"rating\",\"resolvedCount\"]},{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"admin\"]},\"statusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"openCount\":{\"type\":\"integer\"},\"unassignedCount\":{\"type\":\"integer\"},\"urgentCount\":{\"type\":\"integer\"},\"workload\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"openAssignedCount\":{\"type\":\"integer\"}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\",\"openAssignedCount\"]}},\"unassignedQueue\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}}},\"required\":[\"kind\",\"statusCounts\",\"openCount\",\"unassignedCount\",\"urgentCount\",\"workload\",\"unassignedQueue\"]}]}));",
+                  "pm.test(\"Panel je za ulogu agent\", () => pm.expect(pm.response.json().kind).to.eql(\"agent\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard"
+              ]
+            },
+            "description": "Kontrolni panel\n\nBrojevi i kratke liste zahteva za prijavljenog korisnika. Oblik zavisi od uloge (polje kind): korisnik dobija svoje zahteve po statusu i šta čeka njega; agent svoje zahteve, red nedodeljenih, hitne i svoju prosečnu ocenu; admin ukupne brojeve i opterećenje po agentu. Sve se računa pod RLS-om. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Panel (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"oneOf\":[{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"customer\"]},\"statusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"waitingOnMe\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"toRate\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"recent\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}}},\"required\":[\"kind\",\"statusCounts\",\"waitingOnMe\",\"toRate\",\"recent\"]},{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"agent\"]},\"myStatusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"unassignedCount\":{\"type\":\"integer\"},\"urgentCount\":{\"type\":\"integer\"},\"unassignedQueue\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"urgent\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}},\"rating\":{\"type\":\"object\",\"properties\":{\"average\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"count\":{\"type\":\"integer\"}},\"required\":[\"average\",\"count\"]},\"resolvedCount\":{\"type\":\"integer\"}},\"required\":[\"kind\",\"myStatusCounts\",\"unassignedCount\",\"urgentCount\",\"unassignedQueue\",\"urgent\",\"rating\",\"resolvedCount\"]},{\"type\":\"object\",\"properties\":{\"kind\":{\"type\":\"string\",\"enum\":[\"admin\"]},\"statusCounts\":{\"type\":\"object\",\"properties\":{\"open\":{\"type\":\"integer\"},\"in_progress\":{\"type\":\"integer\"},\"waiting_on_customer\":{\"type\":\"integer\"},\"resolved\":{\"type\":\"integer\"},\"closed\":{\"type\":\"integer\"}},\"required\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"openCount\":{\"type\":\"integer\"},\"unassignedCount\":{\"type\":\"integer\"},\"urgentCount\":{\"type\":\"integer\"},\"workload\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"openAssignedCount\":{\"type\":\"integer\"}},\"required\":[\"id\",\"fullName\",\"avatarUrl\",\"role\",\"openAssignedCount\"]}},\"unassignedQueue\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"number\":{\"type\":\"integer\"},\"title\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"open\",\"in_progress\",\"waiting_on_customer\",\"resolved\",\"closed\"]},\"priority\":{\"type\":\"string\",\"enum\":[\"low\",\"medium\",\"high\",\"urgent\"]},\"createdAt\":{\"type\":\"string\"},\"updatedAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"number\",\"title\",\"status\",\"priority\",\"createdAt\",\"updatedAt\"]}}},\"required\":[\"kind\",\"statusCounts\",\"openCount\",\"unassignedCount\",\"urgentCount\",\"workload\",\"unassignedQueue\"]}]}));",
+                  "pm.test(\"Panel je za ulogu admin\", () => pm.expect(pm.response.json().kind).to.eql(\"admin\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "dashboard"
+              ]
+            },
+            "description": "Kontrolni panel\n\nBrojevi i kratke liste zahteva za prijavljenog korisnika. Oblik zavisi od uloge (polje kind): korisnik dobija svoje zahteve po statusu i šta čeka njega; agent svoje zahteve, red nedodeljenih, hitne i svoju prosečnu ocenu; admin ukupne brojeve i opterećenje po agentu. Sve se računa pod RLS-om. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Analitika",
+      "description": "Analitika rada tima (samo admin) i primeri zabrane i lošeg perioda.",
+      "item": [
+        {
+          "name": "Pregled (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"from\":{\"type\":\"string\"},\"to\":{\"type\":\"string\"},\"createdCount\":{\"type\":\"integer\"},\"resolvedCount\":{\"type\":\"integer\"},\"closedCount\":{\"type\":\"integer\"},\"openCount\":{\"type\":\"integer\"},\"avgFirstResponseMinutes\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"avgResolutionMinutes\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"csat\":{\"type\":\"object\",\"properties\":{\"average\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"count\":{\"type\":\"integer\"},\"distribution\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"score\":{\"type\":\"integer\"},\"count\":{\"type\":\"integer\"}},\"required\":[\"score\",\"count\"]}}},\"required\":[\"average\",\"count\",\"distribution\"]}},\"required\":[\"from\",\"to\",\"createdCount\",\"resolvedCount\",\"closedCount\",\"openCount\",\"avgFirstResponseMinutes\",\"avgResolutionMinutes\",\"csat\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "overview"
+              ]
+            },
+            "description": "KPI brojevi i CSAT\n\nBroj kreiranih, rešenih i zatvorenih zahteva u periodu, trenutno nerešenih, prosečno vreme prvog odgovora i rešavanja (u minutima) i CSAT ocene (prosek, broj i raspodela 1–5). Period: ?from i ?to su datumi (dani po beogradskom vremenu, oba uključena); podrazumevano poslednjih 30 dana, najviše 366 dana. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Po kategoriji (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"key\":{\"type\":\"string\"},\"total\":{\"type\":\"integer\"},\"nameSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"nameEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]}},\"required\":[\"key\",\"total\",\"nameSr\",\"nameEn\"]}}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/by-dimension?dimension=category",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "by-dimension"
+              ],
+              "query": [
+                {
+                  "key": "dimension",
+                  "value": "category"
+                }
+              ]
+            },
+            "description": "Raspodela zahteva\n\nBroj zahteva kreiranih u periodu po statusu, kategoriji ili prioritetu. Vraćaju se sve vrednosti (i one sa nulom); za kategorije i nazivi na oba jezika. Period: ?from i ?to su datumi (dani po beogradskom vremenu, oba uključena); podrazumevano poslednjih 30 dana, najviše 366 dana. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Po agentu (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"agentId\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"isActive\":{\"type\":\"boolean\"},\"assignedCount\":{\"type\":\"integer\"},\"resolvedCount\":{\"type\":\"integer\"},\"avgResolutionMinutes\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"avgRating\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]},\"ratingCount\":{\"type\":\"integer\"}},\"required\":[\"agentId\",\"fullName\",\"role\",\"isActive\",\"assignedCount\",\"resolvedCount\",\"avgResolutionMinutes\",\"avgRating\",\"ratingCount\"]}}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/agents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "agents"
+              ]
+            },
+            "description": "Učinak agenata\n\nZa svakog člana tima: zahtevi kreirani u periodu koji su mu dodeljeni, rešeni u periodu, prosečno vreme rešavanja (min) i prosečna CSAT ocena. Računa se po trenutno dodeljenom agentu. Najviše rešenih prvo. Period: ?from i ?to su datumi (dani po beogradskom vremenu, oba uključena); podrazumevano poslednjih 30 dana, najviše 366 dana. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Trend po nedeljama (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"bucketStart\":{\"type\":\"string\"},\"createdCount\":{\"type\":\"integer\"},\"resolvedCount\":{\"type\":\"integer\"}},\"required\":[\"bucketStart\",\"createdCount\",\"resolvedCount\"]}}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/trend?bucket=week",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "trend"
+              ],
+              "query": [
+                {
+                  "key": "bucket",
+                  "value": "week"
+                }
+              ]
+            },
+            "description": "Trend kreiranih i rešenih\n\nBroj kreiranih i rešenih zahteva za svaki dan (bucket=day) ili nedelju (bucket=week, od ponedeljka) u periodu, i za dane bez zahteva (nula). Bez parametra bucket: po danu do 62 dana, inače po nedelji. Period: ?from i ?to su datumi (dani po beogradskom vremenu, oba uključena); podrazumevano poslednjih 30 dana, najviše 366 dana. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Agent ne vidi analitiku -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške FORBIDDEN\", () => pm.expect(error.code).to.eql(\"FORBIDDEN\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{agentToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "overview"
+              ]
+            },
+            "description": "KPI brojevi i CSAT\n\nBroj kreiranih, rešenih i zatvorenih zahteva u periodu, trenutno nerešenih, prosečno vreme prvog odgovora i rešavanja (u minutima) i CSAT ocene (prosek, broj i raspodela 1–5). Period: ?from i ?to su datumi (dani po beogradskom vremenu, oba uključena); podrazumevano poslednjih 30 dana, najviše 366 dana. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Period obrnut (od posle do) -> 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 400\", () => pm.response.to.have.status(400));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške VALIDATION_ERROR\", () => pm.expect(error.code).to.eql(\"VALIDATION_ERROR\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/overview?from=2026-10-21&to=2026-10-01",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "analytics",
+                "overview"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-10-21"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-10-01"
+                }
+              ]
+            },
+            "description": "KPI brojevi i CSAT\n\nBroj kreiranih, rešenih i zatvorenih zahteva u periodu, trenutno nerešenih, prosečno vreme prvog odgovora i rešavanja (u minutima) i CSAT ocene (prosek, broj i raspodela 1–5). Period: ?from i ?to su datumi (dani po beogradskom vremenu, oba uključena); podrazumevano poslednjih 30 dana, najviše 366 dana. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Administracija",
+      "description": "Nalozi i kategorije (samo admin) i primeri zabrana.",
+      "item": [
+        {
+          "name": "Pretraga naloga (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"items\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"},\"openAssignedCount\":{\"type\":\"integer\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\",\"openAssignedCount\"]}},\"page\":{\"type\":\"integer\"},\"pageSize\":{\"type\":\"integer\"},\"total\":{\"type\":\"integer\"}},\"required\":[\"items\",\"page\",\"pageSize\",\"total\"]}));",
+                  "pm.collectionVariables.set(\"markoId\", pm.response.json().items[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?q=marko",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "marko"
+                }
+              ]
+            },
+            "description": "Lista naloga\n\nSvi nalozi po imenu, sa pretragom po imenu ili emailu (q), filterima uloge i aktivnosti i paginacijom. Uz svaki nalog i broj dodeljenih nerešenih zahteva. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Korisnik ne vidi administraciju -> 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 403\", () => pm.response.to.have.status(403));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške FORBIDDEN\", () => pm.expect(error.code).to.eql(\"FORBIDDEN\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ]
+            },
+            "description": "Lista naloga\n\nSvi nalozi po imenu, sa pretragom po imenu ili emailu (q), filterima uloge i aktivnosti i paginacijom. Uz svaki nalog i broj dodeljenih nerešenih zahteva. Uloge: admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Admin potvrđuje da je nalog aktivan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"},\"openAssignedCount\":{\"type\":\"integer\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\",\"openAssignedCount\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{markoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{markoId}}"
+              ]
+            },
+            "description": "Izmena uloge ili aktivnosti naloga\n\nMenja ulogu (customer, agent, admin) i/ili aktivnost naloga. Admin ne može da menja sopstveni nalog (409 CANNOT_MODIFY_SELF). Kad agent ili admin izgubi ulogu tima ili bude deaktiviran, njegovi nerešeni zahtevi se vraćaju u red za preuzimanje (upisuje se u istoriju zahteva). Deaktiviran nalog dobija 403 ACCOUNT_DISABLED na svakom pozivu. Uloge: admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Admin ne menja sopstveni nalog -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške CANNOT_MODIFY_SELF\", () => pm.expect(error.code).to.eql(\"CANNOT_MODIFY_SELF\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{adminId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "{{adminId}}"
+              ]
+            },
+            "description": "Izmena uloge ili aktivnosti naloga\n\nMenja ulogu (customer, agent, admin) i/ili aktivnost naloga. Admin ne može da menja sopstveni nalog (409 CANNOT_MODIFY_SELF). Kad agent ili admin izgubi ulogu tima ili bude deaktiviran, njegovi nerešeni zahtevi se vraćaju u red za preuzimanje (upisuje se u istoriju zahteva). Deaktiviran nalog dobija 403 ACCOUNT_DISABLED na svakom pozivu. Uloge: admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"agent\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Nova kategorija",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]}));",
+                  "pm.collectionVariables.set(\"newCategoryId\", pm.response.json().id);",
+                  "pm.collectionVariables.set(\"newCategorySlug\", pm.response.json().slug);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories"
+              ]
+            },
+            "description": "Nova kategorija\n\nDodaje aktivnu kategoriju sa nazivom i opisom na srpskom i engleskom. Oznaka (slug) mora biti jedinstvena (409 CATEGORY_SLUG_TAKEN). Uloge: admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"postman-{{$timestamp}}\",\n  \"nameEn\": \"Postman test\",\n  \"nameSr\": \"Postman test\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Ista oznaka kategorije -> 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 409\", () => pm.response.to.have.status(409));",
+                  "const error = pm.response.json().error;",
+                  "pm.test(\"Greška ima oblik { error: { code, message } }\", () => {",
+                  "  pm.expect(error.code).to.be.a(\"string\");",
+                  "  pm.expect(error.message).to.be.a(\"string\");",
+                  "});",
+                  "pm.test(\"Kod greške CATEGORY_SLUG_TAKEN\", () => pm.expect(error.code).to.eql(\"CATEGORY_SLUG_TAKEN\"));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories"
+              ]
+            },
+            "description": "Nova kategorija\n\nDodaje aktivnu kategoriju sa nazivom i opisom na srpskom i engleskom. Oznaka (slug) mora biti jedinstvena (409 CATEGORY_SLUG_TAKEN). Uloge: admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"slug\": \"{{newCategorySlug}}\",\n  \"nameEn\": \"Duplikat\",\n  \"nameSr\": \"Duplikat\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Deaktivacija kategorije",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"anyOf\":[{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"slug\":{\"type\":\"string\"},\"nameEn\":{\"type\":\"string\"},\"nameSr\":{\"type\":\"string\"},\"descriptionEn\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"descriptionSr\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"isActive\":{\"type\":\"boolean\"},\"sortOrder\":{\"type\":\"integer\"}},\"required\":[\"id\",\"slug\",\"nameEn\",\"nameSr\",\"descriptionEn\",\"descriptionSr\",\"isActive\",\"sortOrder\"]},{\"type\":\"null\"}]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/categories/{{newCategoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "categories",
+                "{{newCategoryId}}"
+              ]
+            },
+            "description": "Izmena kategorije\n\nMenja naziv, opis, oznaku, redosled ili aktivnost kategorije. Deaktivirana kategorija ostaje na postojećim zahtevima, ali se ne nudi pri kreiranju novih. Uloge: admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Sistem i odjava",
+      "description": "OpenAPI specifikacija i odjava. Odjava ide na kraju, sa posebnom prijavom, da ne poništi token koji koriste ostali pozivi.",
+      "item": [
+        {
+          "name": "OpenAPI specifikacija",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"openapi\":{\"type\":\"string\"},\"info\":{\"type\":\"object\",\"properties\":{\"title\":{\"type\":\"string\"},\"version\":{\"type\":\"string\"}},\"required\":[\"title\",\"version\"]},\"paths\":{\"type\":\"object\",\"properties\":{}}},\"required\":[\"openapi\",\"info\",\"paths\"]}));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/openapi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "openapi"
+              ]
+            },
+            "description": "OpenAPI specifikacija\n\nVraća OpenAPI 3 dokument sa svim API rutama aplikacije. Koristi ga Swagger UI (/api-docs); isti JSON se može uvesti u Postman. Uloge: svi (bez prijave). Ako je SWAGGER_ENABLED=false, vraća 404."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Prijava za odjavu (Ana)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"Odgovor odgovara šemi iz OpenAPI-ja\", () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"profile\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\"},\"fullName\":{\"type\":\"string\"},\"email\":{\"type\":\"string\"},\"avatarUrl\":{\"anyOf\":[{\"type\":\"string\"},{\"type\":\"null\"}]},\"role\":{\"type\":\"string\",\"enum\":[\"customer\",\"agent\",\"admin\"]},\"locale\":{\"type\":\"string\",\"enum\":[\"sr\",\"en\"]},\"isActive\":{\"type\":\"boolean\"},\"createdAt\":{\"type\":\"string\"}},\"required\":[\"id\",\"fullName\",\"email\",\"avatarUrl\",\"role\",\"locale\",\"isActive\",\"createdAt\"]},\"session\":{\"type\":\"object\",\"properties\":{\"accessToken\":{\"type\":\"string\"},\"expiresAt\":{\"anyOf\":[{\"type\":\"number\"},{\"type\":\"null\"}]}},\"required\":[\"accessToken\",\"expiresAt\"]}},\"required\":[\"profile\",\"session\"]}));",
+                  "pm.collectionVariables.set(\"logoutToken\", pm.response.json().session.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Prijava emailom i lozinkom\n\nProverava email i lozinku, postavlja kolačiće sesije i vraća profil i pristupni token. Token (session.accessToken) se koristi za dugme „Authorize“ u ovom Swagger-u. Demo nalozi: admin@helpdesk.test, agent@helpdesk.test, ana@helpdesk.test (lozinka Lozinka123!). Uloge: gost (bez prijave).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana@helpdesk.test\",\n  \"password\": \"Lozinka123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        },
+        {
+          "name": "Odjava",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{logoutToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Odjava\n\nPoništava sesiju kod Supabase-a i briše kolačiće. Uloge: customer, agent, admin."
+          },
+          "protocolProfileBehavior": {
+            "disableCookies": true
+          }
+        }
+      ]
+    }
+  ]
+}

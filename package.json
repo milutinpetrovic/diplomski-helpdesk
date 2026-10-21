@@ -18,7 +18,9 @@
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --db-url \"postgresql://postgres:postgres@127.0.0.1:54322/postgres?sslmode=disable\" --schema public > src/types/database.ts && prettier --write src/types/database.ts",
     "test:unit": "vitest run --project unit",
-    "seed:demo": "node --env-file-if-exists=.env.local scripts/seed-demo.mts"
+    "seed:demo": "node --env-file-if-exists=.env.local scripts/seed-demo.mts",
+    "postman:generate": "node scripts/postman-generate.mts",
+    "test:api": "newman run postman/helpdesk.postman_collection.json -e postman/local.postman_environment.json"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "9.1.0",
@@ -56,6 +58,7 @@
     "@vitest/coverage-v8": "5.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
+    "newman": "6.2.2",
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
     "supabase": "2.121.0",

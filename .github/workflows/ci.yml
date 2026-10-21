@@ -110,3 +110,36 @@ jobs:
         with:
           name: playwright-report
           path: playwright-report/
+
+  # Postman kolekcija (postman/) nad pravom aplikacijom i lokalnim Supabase-om:
+  # prvo provera da je kolekcija usklađena sa OpenAPI-jem, pa svi pozivi preko newman-a.
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,storage-api
+      - run: pnpm exec supabase status -o env | sed 's/"//g' >> "$GITHUB_ENV"
+      - name: Podešavanje aplikacije
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000" >> "$GITHUB_ENV"
+      - run: pnpm seed:demo
+      - run: pnpm build
+      # Aplikacija radi u pozadini; čeka se da odgovori pre testova.
+      - name: Pokretanje aplikacije
+        run: |
+          pnpm start > next.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:3000/api/openapi > /dev/null && exit 0; sleep 1; done
+          cat next.log; exit 1
+      - run: pnpm postman:generate --check
+      # Dva prolaza: kolekcija mora moći da se pokrene više puta nad istom bazom.
+      - run: pnpm test:api
+      - run: pnpm test:api

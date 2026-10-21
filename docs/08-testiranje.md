@@ -6,28 +6,31 @@ Izveštaj za poglavlje rada „Testiranje aplikacije“. Opisuje koje vrste test
 
 | Vrsta        | Alat                                  | Lokacija                 | Broj testova | Šta dokazuje                                                                                                               |
 | ------------ | ------------------------------------- | ------------------------ | ------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| Unit         | Vitest                                | `tests/unit/`            | 294          | Pravila bez baze: tabela prelaza statusa, ko sme šta (`TicketAccessPolicy`), Zod šeme, mapiranje grešaka, pomoćne funkcije |
+| Unit         | Vitest                                | `tests/unit/`            | 302          | Pravila bez baze: tabela prelaza statusa, ko sme šta (`TicketAccessPolicy`), Zod šeme, mapiranje grešaka, pomoćne funkcije |
 | Integracioni | Vitest + lokalni Supabase             | `tests/integration/`     | 190          | API rute i RPC funkcije nad pravom bazom, prijavljeni kao različite uloge; real-time događaji                              |
 | RLS          | Vitest + lokalni Supabase (PostgREST) | `tests/integration/rls/` | 63           | Svaka ćelija RLS matrice (sekcija 3): baza sama brani podatke i kad se API zaobiđe                                         |
 | E2E          | Playwright                            | `tests/e2e/`             | 11           | Glavni scenariji u pravom pregledaču (Chromium), kao korisnik, agent i admin (sekcija 5)                                   |
-| API          | Postman + newman                      | `postman/`               | —            | Faza 9c                                                                                                                    |
+| API          | Postman + newman                      | `postman/`               | 57 poziva    | Svaka API ruta iz Swagger-a pozvana kao prava uloga: status, oblik odgovora (šema iz OpenAPI-ja) i kod greške (sekcija 6)  |
 
 Broj integracionih testova ne uključuje RLS testove (oni su u svom redu). Svi testovi se pokreću u CI-u (GitHub Actions, `.github/workflows/ci.yml`) na svaki push i pull request.
 
 ## 2. Pokretanje
 
-| Komanda              | Šta radi                                                                                    | Potrebno                                        |
-| -------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `pnpm test:unit`     | unit testovi (nekoliko sekundi)                                                             | ništa                                           |
-| `pnpm test:db`       | integracioni i RLS testovi                                                                  | `pnpm db:start`                                 |
-| `pnpm test:coverage` | svi Vitest testovi + izveštaj o pokrivenosti u `coverage/` (otvoriti `coverage/index.html`) | `pnpm db:start`                                 |
-| `pnpm test:e2e`      | E2E testovi u pregledaču; aplikaciju sam pokreće (`pnpm start`) na http://localhost:3000    | `pnpm db:start`, `pnpm seed:demo`, `pnpm build` |
+| Komanda                 | Šta radi                                                                                    | Potrebno                                        |
+| ----------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `pnpm test:unit`        | unit testovi (nekoliko sekundi)                                                             | ništa                                           |
+| `pnpm test:db`          | integracioni i RLS testovi                                                                  | `pnpm db:start`                                 |
+| `pnpm test:coverage`    | svi Vitest testovi + izveštaj o pokrivenosti u `coverage/` (otvoriti `coverage/index.html`) | `pnpm db:start`                                 |
+| `pnpm test:e2e`         | E2E testovi u pregledaču; aplikaciju sam pokreće (`pnpm start`) na http://localhost:3000    | `pnpm db:start`, `pnpm seed:demo`, `pnpm build` |
+| `pnpm test:api`         | Postman kolekcija preko newman-a nad http://localhost:3000                                  | `pnpm db:start`, aplikacija pokrenuta           |
+| `pnpm postman:generate` | ponovo pravi kolekciju iz `/api/openapi` (posle izmene ili nove rute)                       | aplikacija pokrenuta                            |
 
 U CI-u:
 
 - posao `check` pokreće unit testove
 - posao `db` pokreće `pnpm test:coverage` nad lokalnim Supabase-om i čuva izveštaj kao artefakt **coverage** (preuzima se sa stranice CI pokretanja)
 - posao `e2e` pokreće Supabase, demo podatke, build i `pnpm test:e2e`; izveštaj Playwright-a (sa snimcima ekrana i tragom za test koji padne) čuva se kao artefakt **playwright-report**
+- posao `api` pokreće Supabase, demo podatke i aplikaciju, proverava da je Postman kolekcija usklađena sa OpenAPI-jem (`pnpm postman:generate --check`) i dva puta pokreće `pnpm test:api` (kolekcija mora moći da se ponovi nad istom bazom)
 
 ## 3. RLS matrica i testovi
 
@@ -159,3 +162,31 @@ Testovi rade u pravom pregledaču (Chromium) nad pravom aplikacijom i lokalnim S
 | `kanban.spec.ts`           | prevlačenje mišem (preuzimanje), zabranjen prelaz sa porukom, prevlačenje tastaturom                                                                                       | UC-13, UC-16, NFZ-4                            |
 
 Registracija i real-time traže pravi Supabase Auth (sa Mailpit-om) i Realtime, koje pokreće `supabase start`. U okruženju bez Docker-a real-time test se preskače (`REALTIME_TESTS=off`), kao i integracioni real-time testovi. U CI-u rade svi.
+
+## 6. Postman kolekcija (API)
+
+Kolekcija `postman/helpdesk.postman_collection.json` poziva API isto kao spoljni klijent (Postman, mobilna aplikacija): samo preko HTTP-a i tokena `Authorization: Bearer`, bez kolačića. Uputstvo za uvoz i pokretanje u Postman aplikaciji je u `postman/README.md`.
+
+**Kako nastaje.** Kolekciju pravi skripta `scripts/postman-generate.mts` iz OpenAPI specifikacije (`GET /api/openapi`), iste one koju prikazuje Swagger na `/api-docs`. Skripta ima spisak poziva (scenario), a iz specifikacije uzima opis rute i JSON šemu odgovora. Ako neka ruta iz Swagger-a nema Postman poziv, skripta javlja grešku. Zato nova ruta ne može da se doda bez Postman testa, a Swagger i Postman uvek opisuju isti API. U CI-u `--check` proverava da sačuvana kolekcija odgovara specifikaciji.
+
+**Šta proverava svaki poziv:**
+
+- status odgovora (npr. 201 za novi zahtev, 403 za zabranjenu radnju)
+- za uspešan odgovor: da JSON odgovara šemi iz OpenAPI-ja (`pm.response.to.have.jsonSchema`)
+- za grešku: jedinstven oblik `{ error: { code, message } }` i tačan kod greške
+- dodatne provere gde je bitno (npr. korisnik ne vidi interne beleške, panel je za pravu ulogu)
+
+**Redosled (folderi):**
+
+| Folder             | Šta radi                                                                                                                                                       | Primeri grešaka                                                                                                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Prijava (Auth)  | prijava kao korisnik, agent i admin (tokeni se čuvaju u promenljivama kolekcije); registracija; zaboravljena lozinka; Google prijava i callback (preusmerenje) | pogrešna lozinka `INVALID_CREDENTIALS`, neispravan email i kratka lozinka `VALIDATION_ERROR`, bez prijave `UNAUTHENTICATED`                                                                         |
+| 2. Profil          | čitanje i izmena profila                                                                                                                                       | bez prijave `UNAUTHENTICATED`                                                                                                                                                                       |
+| 3. Zahtevi         | ceo život zahteva: korisnik prijavi i izmeni → agent preuzme, odgovori, napiše internu belešku, reši → korisnik oceni; komentari i istorija                    | agent ne prijavljuje `FORBIDDEN`, nepostojeći `TICKET_NOT_FOUND`, interna beleška korisnika `FORBIDDEN_INTERNAL_COMMENT`, zabranjen prelaz `INVALID_STATUS_TRANSITION`, druga ocena `ALREADY_RATED` |
+| 4. Obaveštenja     | lista, jedno pročitano, sva pročitana                                                                                                                          | —                                                                                                                                                                                                   |
+| 5. Kontrolni panel | isti poziv za tri uloge daje tri različita panela                                                                                                              | —                                                                                                                                                                                                   |
+| 6. Analitika       | pregled, po kategoriji, po agentu, trend                                                                                                                       | agent `FORBIDDEN`, obrnut period `VALIDATION_ERROR`                                                                                                                                                 |
+| 7. Administracija  | pretraga i izmena naloga; nova kategorija i njena deaktivacija                                                                                                 | korisnik `FORBIDDEN`, izmena sopstvenog naloga `CANNOT_MODIFY_SELF`, ista oznaka `CATEGORY_SLUG_TAKEN`                                                                                              |
+| 8. Sistem i odjava | OpenAPI specifikacija; odjava sa posebnom prijavom (da ne poništi tokene ostalih poziva)                                                                       | —                                                                                                                                                                                                   |
+
+Ukupno 57 poziva za svih 34 API operacija (30 putanja). Kolekcija pravi nov zahtev, novog korisnika i novu (pa deaktiviranu) kategoriju pri svakom pokretanju, zato se ne pokreće nad produkcijom. Okruženja: `postman/local.postman_environment.json` (http://localhost:3000) i `postman/demo.postman_environment.json` (adresa demo servera, upisuje se posle deploy-a).

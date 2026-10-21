@@ -11,8 +11,8 @@ Mentor: dr Nemanja Zdravković.
 
 Next.js 16 (App Router), React 19, TypeScript 5.9 (strict), Tailwind CSS 4, shadcn/ui, next-intl (srpski i engleski),
 Supabase (PostgreSQL 17, Auth, RLS, Realtime), Zod, react-hook-form, Swagger/OpenAPI, Recharts (grafikoni),
-@dnd-kit/core (prevlačenje na kanban tabli: miš, dodir i tastatura), Vitest.
-U narednim fazama: Playwright.
+@dnd-kit/core (prevlačenje na kanban tabli: miš, dodir i tastatura), Vitest, Playwright (E2E),
+Postman i newman (testovi API-ja).
 
 ## Pokretanje
 
@@ -68,6 +68,9 @@ Skripta je deterministička (isti raspored podataka pri svakom pokretanju, vreme
 | `pnpm db:types`                     | generiše TypeScript tipove baze u `src/types/database.ts`                               |
 | `pnpm test:unit`                    | unit testovi (bez baze): withApi, greške, Zod šeme, pravila statusa i pristupa, OpenAPI |
 | `pnpm test:db`                      | integracioni testovi (RLS, RPC, API zahteva, prijava i profil); traži `pnpm db:start`   |
+| `pnpm test:e2e`                     | E2E testovi u pregledaču (Playwright); vidi `docs/08-testiranje.md`                     |
+| `pnpm test:api`                     | Postman kolekcija preko newman-a; aplikacija mora da radi (vidi `postman/README.md`)    |
+| `pnpm postman:generate`             | ponovo pravi Postman kolekciju iz `/api/openapi` (posle nove ili izmenjene rute)        |
 
 ## Promenljive okruženja
 
@@ -100,10 +103,15 @@ Za Google prijavu sa lokalnim Supabase-om: u `supabase/config.toml` postaviti `[
 
 ## Stanje razvoja
 
-| Faza | Sadržaj                                              | Stanje      |
-| ---- | ---------------------------------------------------- | ----------- |
-| 1    | Kostur aplikacije, prevodi, početna stranica, CI     | završeno    |
-| 2    | Baza podataka (Supabase)                             | završeno    |
-| 3    | Infrastruktura API-ja, greške, Swagger (`/api-docs`) | završeno    |
-| 4    | Prijava, registracija, Google nalog, profil, meni    | u pregledu  |
-| 5–10 | vidi `docs/07-uputstvo-za-implementaciju.md`         | nije počelo |
+| Faza | Sadržaj                                                       | Stanje      |
+| ---- | ------------------------------------------------------------- | ----------- |
+| 1    | Kostur aplikacije, prevodi, početna stranica, CI              | završeno    |
+| 2    | Baza podataka (Supabase)                                      | završeno    |
+| 3    | Infrastruktura API-ja, greške, Swagger (`/api-docs`)          | završeno    |
+| 4    | Prijava, registracija, Google nalog, profil, meni             | završeno    |
+| 5    | Zahtevi: API, stranice, statusni tok, komentari, kanban tabla | završeno    |
+| 6    | Kontrolni panel po ulogama                                    | završeno    |
+| 7    | Obaveštenja u realnom vremenu                                 | završeno    |
+| 8    | Analitika, demo podaci, administracija                        | završeno    |
+| 9    | Testiranje: RLS matrica, pokrivenost, E2E, Postman            | u pregledu  |
+| 10   | vidi `docs/07-uputstvo-za-implementaciju.md`                  | nije počelo |
