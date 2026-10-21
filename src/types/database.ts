@@ -459,6 +459,14 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      agent_dashboard_stats: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          avg_rating: number;
+          rating_count: number;
+          resolved_count: number;
+        }[];
+      };
       assign_ticket: {
         Args: { p_assignee_id?: string; p_ticket_id: string };
         Returns: {
@@ -566,6 +574,15 @@ export type Database = {
           isOneToOne: true;
           isSetofReturn: false;
         };
+      };
+      ticket_counts: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          assignment: string;
+          priority: Database["public"]["Enums"]["ticket_priority"];
+          status: Database["public"]["Enums"]["ticket_status"];
+          total: number;
+        }[];
       };
       update_ticket: {
         Args: {

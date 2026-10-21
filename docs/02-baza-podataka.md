@@ -313,7 +313,10 @@ Sve primaju period `p_from timestamptz, p_to timestamptz`, dostupne samo adminu 
 | `analytics_agents(p_from, p_to)`                    | po agentu: dodeljeno, rešeno, prosečno vreme rešavanja, prosečna ocena                                                                                         |
 | `analytics_trend(p_from, p_to, p_bucket)`           | po danu/nedelji: broj kreiranih i rešenih                                                                                                                      |
 
-Za agentov dashboard postoji `agent_dashboard_stats()` koja vraća samo podatke prijavljenog agenta.
+Za kontrolni panel (Faza 6, migracija `20261021080000_dashboard.sql`) postoje dve funkcije sa pravima pozivaoca (`security invoker`, važi RLS):
+
+- `ticket_counts()`: broj zahteva po statusu, prioritetu i dodeli (`me`, `unassigned`, `other`). Korisnik broji samo svoje zahteve, a agent i admin sve.
+- `agent_dashboard_stats()`: prosečna CSAT ocena, broj ocena i broj rešenih zahteva prijavljenog agenta (ili admina). Korisnik dobija `FORBIDDEN`.
 
 ## 7. Real-time u bazi
 

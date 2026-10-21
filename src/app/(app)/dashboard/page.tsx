@@ -1,15 +1,22 @@
 /**
  * Fajl: src/app/(app)/dashboard/page.tsx
- * Svrha: stranica /dashboard — kontrolni panel (UC-25). Za sada samo pozdrav;
- * pravi sadržaj po ulozi (zahtevi po statusu, red rada, pregled svih) stiže u Fazi 6.
- * Ovde se korisnik vodi posle prijave.
+ * Svrha: stranica /dashboard — kontrolni panel (UC-25), prva stranica posle
+ * prijave. Svaka uloga vidi svoj panel:
+ *   - korisnik: svoji zahtevi po statusu, šta čeka njega, poslednji zahtevi
+ *   - agent: red rada (dodeljeni, nedodeljeni, hitni) i svoja ocena
+ *   - admin: stanje svih zahteva i opterećenje tima
+ * Podaci se čitaju na serveru preko istog servisa kao GET /api/dashboard.
+ * Osvežavanje bez reload-a dolazi u Fazi 7 (real-time obaveštenja).
  * Pristup: customer, agent, admin.
  */
 import { getTranslations } from "next-intl/server";
 
-import { ComingSoon } from "@/components/layout/ComingSoon";
+import { DashboardAdmin } from "@/components/dashboard/DashboardAdmin";
+import { DashboardAgent } from "@/components/dashboard/DashboardAgent";
+import { DashboardCustomer } from "@/components/dashboard/DashboardCustomer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { requireCurrentUser } from "@/lib/auth/server-session";
+import { DashboardService } from "@/services/dashboard/dashboard-service";
 
 /** Naslov taba. */
 export async function generateMetadata() {
@@ -17,15 +24,28 @@ export async function generateMetadata() {
   return { title: t("title") };
 }
 
-/** Kontrolni panel (privremeni prikaz). */
+/** Kontrolni panel (serverska komponenta). */
 export default async function DashboardPage() {
-  const { profile } = await requireCurrentUser();
+  const { ctx, profile } = await requireCurrentUser();
   const t = await getTranslations("dashboard");
+
+  // Korak 1: podaci po ulozi prijavljenog korisnika.
+  const data = await new DashboardService(ctx).getForCurrentUser();
+
+  // Korak 2: opis ispod pozdrava, po ulozi.
+  const description = {
+    customer: t("descriptionCustomer"),
+    agent: t("descriptionAgent"),
+    admin: t("descriptionAdmin"),
+  }[data.kind];
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("welcome", { name: profile.fullName })} />
-      <ComingSoon />
+      <PageHeader title={t("welcome", { name: profile.fullName })} description={description} />
+      {/* Korak 3: prikaz za ulogu (polje kind kaže koji je oblik podataka). */}
+      {data.kind === "customer" ? <DashboardCustomer data={data} /> : null}
+      {data.kind === "agent" ? <DashboardAgent data={data} /> : null}
+      {data.kind === "admin" ? <DashboardAdmin data={data} /> : null}
     </>
   );
 }

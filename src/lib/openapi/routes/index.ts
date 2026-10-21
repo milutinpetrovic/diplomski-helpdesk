@@ -13,3 +13,4 @@ import "@/lib/openapi/routes/comments";
 import "@/lib/openapi/routes/ratings";
 import "@/lib/openapi/routes/categories";
 import "@/lib/openapi/routes/admin";
+import "@/lib/openapi/routes/dashboard";

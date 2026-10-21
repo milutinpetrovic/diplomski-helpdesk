@@ -25,7 +25,7 @@ export function generateOpenApiDocument() {
     openapi: "3.0.3",
     info: {
       title: "Tehnička podrška — API",
-      version: "0.5.0",
+      version: "0.6.0",
       description:
         "API veb aplikacije za tehničku podršku (diplomski rad, Milutin Petrović 3407). " +
         "Greške imaju jedinstven oblik { error: { code, message, details } }; " +
@@ -46,6 +46,7 @@ export function generateOpenApiDocument() {
       { name: "Ratings", description: "Ocena zadovoljstva (CSAT 1–5) za rešen zahtev." },
       { name: "Categories", description: "Kategorije zahteva." },
       { name: "Admin", description: "Tim podrške i administracija naloga." },
+      { name: "Dashboard", description: "Kontrolni panel po ulozi." },
       { name: "System", description: "Sistemske rute (OpenAPI specifikacija)." },
     ],
   });
