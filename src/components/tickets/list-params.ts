@@ -5,7 +5,9 @@
  * „Nazad“ u pregledaču vraća prethodne filtere.
  *   - parseTicketListParams: adresa -> filteri (ista Zod šema kao API, ticketListQuerySchema)
  *   - ticketListHref: filteri -> adresa (podrazumevane vrednosti se izostavljaju)
- * Koriste ga: stranica /tickets (čitanje), TicketFilters i TicketPagination (pravljenje linkova).
+ *   - parseTicketView: prikaz liste iz adrese (?view=board = kanban tabla, inače lista)
+ * Koriste ga: stranica /tickets (čitanje), TicketFilters, TicketPagination,
+ * TicketViewToggle i TicketBoard (pravljenje linkova).
  * Povezano sa: src/lib/validation/tickets.ts, GET /api/tickets (isti parametri).
  */
 import { ticketListQuerySchema, type TicketListQuery } from "@/lib/validation/tickets";
@@ -51,19 +53,36 @@ export function parseTicketListParams(raw: RawSearchParams): TicketListQuery {
   return ticketListQuerySchema.safeParse(values).data ?? ticketListQuerySchema.parse({});
 }
 
+/** Prikaz stranice /tickets: lista (podrazumevano) ili kanban tabla. */
+export const TICKET_VIEWS = ["list", "board"] as const;
+export type TicketView = (typeof TICKET_VIEWS)[number];
+
+/**
+ * Čita prikaz iz adrese (?view=board).
+ * Vraća: "board" samo za tačnu vrednost "board", inače "list".
+ */
+export function parseTicketView(raw: RawSearchParams): TicketView {
+  const value = Array.isArray(raw.view) ? raw.view[0] : raw.view;
+  return value === "board" ? "board" : "list";
+}
+
 /** Podrazumevane vrednosti, koje se ne pišu u adresu. */
 const DEFAULTS = ticketListQuerySchema.parse({});
 
+/** Filteri i prikaz zajedno (sve što može da stoji u adresi /tickets). */
+export type TicketListLocation = Partial<TicketListQuery> & { view?: TicketView };
+
 /**
  * Pravi adresu liste za date filtere.
- * Ulaz: trenutni filteri i izmene (npr. { page: 2 } ili { status: undefined }).
+ * Ulaz: trenutni filteri (i prikaz) i izmene (npr. { page: 2 } ili { status: undefined }).
  * Vraća: npr. "/tickets?status=open&page=2"; bez parametara samo "/tickets".
+ * Prikaz „tabla“ dodaje ?view=board (lista je podrazumevana i ne piše se).
  */
 export function ticketListHref(
-  query: Partial<TicketListQuery>,
-  changes: Partial<TicketListQuery> = {},
+  query: TicketListLocation,
+  changes: TicketListLocation = {},
 ): string {
-  const merged: Partial<TicketListQuery> = { ...query, ...changes };
+  const merged: TicketListLocation = { ...query, ...changes };
   const params = new URLSearchParams();
   for (const key of LIST_PARAM_KEYS) {
     const value = merged[key];
@@ -71,6 +90,7 @@ export function ticketListHref(
     if (value === undefined || value === "" || value === DEFAULTS[key]) continue;
     params.set(key, String(value));
   }
+  if (merged.view === "board") params.set("view", "board");
   const text = params.toString();
   return text ? `/tickets?${text}` : "/tickets";
 }

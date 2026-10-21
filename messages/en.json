@@ -363,6 +363,27 @@
       "thanks": "Thank you for your rating!",
       "given": "Customer rating",
       "value": "{score} out of 5"
+    },
+    "view": {
+      "label": "Ticket view",
+      "list": "List",
+      "board": "Board"
+    },
+    "board": {
+      "cardLabel": "Ticket #{number}: {title}",
+      "emptyColumn": "No tickets",
+      "showAll": "Show all ({total})",
+      "notAllowedHere": "Not allowed",
+      "notAllowed": "Moving from “{from}” to “{to}” is not allowed.",
+      "cancelTitle": "Cancel ticket #{number}",
+      "instructions": "Press space to pick up the ticket. Use the left and right arrows to choose a column, space to drop it, and Escape to cancel. Enter opens the ticket.",
+      "announce": {
+        "start": "Picked up ticket #{number}.",
+        "over": "Ticket #{number} is over the {column} column.",
+        "outside": "Ticket #{number} is not over a column.",
+        "end": "Ticket #{number} was dropped into the {column} column.",
+        "cancel": "Moving ticket #{number} was cancelled."
+      }
     }
   },
   "errors": {

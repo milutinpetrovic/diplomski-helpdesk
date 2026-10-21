@@ -363,6 +363,27 @@
       "thanks": "Hvala na oceni!",
       "given": "Ocena korisnika",
       "value": "{score} od 5"
+    },
+    "view": {
+      "label": "Prikaz zahteva",
+      "list": "Lista",
+      "board": "Tabla"
+    },
+    "board": {
+      "cardLabel": "Zahtev #{number}: {title}",
+      "emptyColumn": "Nema zahteva",
+      "showAll": "Prikaži sve ({total})",
+      "notAllowedHere": "Nije dozvoljeno",
+      "notAllowed": "Prelaz iz „{from}“ u „{to}“ nije dozvoljen.",
+      "cancelTitle": "Otkazivanje zahteva #{number}",
+      "instructions": "Pritisnite razmak da podignete zahtev. Strelicama levo i desno birate kolonu, razmakom spuštate zahtev, a Escape odustaje. Enter otvara zahtev.",
+      "announce": {
+        "start": "Zahtev #{number} je podignut.",
+        "over": "Zahtev #{number} je iznad kolone {column}.",
+        "outside": "Zahtev #{number} nije iznad nijedne kolone.",
+        "end": "Zahtev #{number} je spušten u kolonu {column}.",
+        "cancel": "Prevlačenje zahteva #{number} je otkazano."
+      }
     }
   },
   "errors": {

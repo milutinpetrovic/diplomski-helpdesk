@@ -10,8 +10,9 @@ Mentor: dr Nemanja Zdravković.
 ## Tehnologije
 
 Next.js 16 (App Router), React 19, TypeScript 5.9 (strict), Tailwind CSS 4, shadcn/ui, next-intl (srpski i engleski),
-Supabase (PostgreSQL 17, Auth, RLS, Realtime), Zod, react-hook-form, Swagger/OpenAPI, Vitest.
-U narednim fazama: Recharts, Playwright.
+Supabase (PostgreSQL 17, Auth, RLS, Realtime), Zod, react-hook-form, Swagger/OpenAPI, Recharts (grafikoni),
+@dnd-kit/core (prevlačenje na kanban tabli: miš, dodir i tastatura), Vitest.
+U narednim fazama: Playwright.
 
 ## Pokretanje
 

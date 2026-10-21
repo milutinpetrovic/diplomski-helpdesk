@@ -182,7 +182,7 @@ Svaka šema se koristi na tri mesta: forma (react-hook-form + `zodResolver`), AP
 | `/forgot-password`  | `app/(auth)/forgot-password/page.tsx` | gost            | SSR                        | Unos emaila                                                                                              |
 | `/reset-password`   | `app/(auth)/reset-password/page.tsx`  | sesija iz linka | SSR                        | Nova lozinka                                                                                             |
 | `/dashboard`        | `app/(app)/dashboard/page.tsx`        | C A AD          | SSR + real-time            | Dashboard po ulozi (UC-25)                                                                               |
-| `/tickets`          | `app/(app)/tickets/page.tsx`          | C A AD          | SSR + klijentski filteri   | Lista, filteri u URL-u, paginacija                                                                       |
+| `/tickets`          | `app/(app)/tickets/page.tsx`          | C A AD          | SSR + klijentski filteri   | Lista, filteri u URL-u, paginacija; `?view=board` = kanban tabla (kolona po statusu, prevlačenje)        |
 | `/tickets/new`      | `app/(app)/tickets/new/page.tsx`      | C               | SSR                        | Forma za novi zahtev                                                                                     |
 | `/tickets/[id]`     | `app/(app)/tickets/[id]/page.tsx`     | C A AD          | SSR + real-time            | Detalji, akcije, komentari, istorija, ocena                                                              |
 | `/notifications`    | `app/(app)/notifications/page.tsx`    | C A AD          | SSR + real-time            | Sva obaveštenja                                                                                          |
@@ -191,6 +191,8 @@ Svaka šema se koristi na tri mesta: forma (react-hook-form + `zodResolver`), AP
 | `/admin/users`      | `app/(app)/admin/users/page.tsx`      | AD              | SSR                        | UC-21                                                                                                    |
 | `/admin/categories` | `app/(app)/admin/categories/page.tsx` | AD              | SSR                        | UC-22                                                                                                    |
 | `/api-docs`         | `app/api-docs/page.tsx`               | vidi gore       | klijent                    | Swagger UI                                                                                               |
+
+Kanban tabla (`/tickets?view=board`): prekidač „Lista / Tabla“ čuva izbor u adresi. Stranica učitava pet kolona paralelno preko `TicketService.list` (status kolone, isti filteri, najviše 20 po koloni, link „Prikaži sve (N)“ na listu po statusu); filter statusa se na tabli ne prikazuje. Prevlačenje ne uvodi novi API: promena statusa ide kroz `POST /api/tickets/{id}/status`, a agent koji prevuče nedodeljen otvoren zahtev u „U obradi“ poziva `POST /api/tickets/{id}/assign` (preuzimanje). Dozvoljene kolone daje `boardDropTargets` (ista tabela prelaza kao dugmad, `StatusTransitionPolicy`); API i baza ih proveravaju ponovo.
 
 Zaštita stranica: `proxy.ts` preusmerava neprijavljene sa `(app)` na `/login?next=...` i prijavljene sa `(auth)` na `/dashboard`. Provera uloge za `/analytics` i `/admin/*` radi se u `layout.tsx` tih foldera (server), a ne samo sakrivanjem linka u meniju.
 
