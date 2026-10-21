@@ -19,7 +19,8 @@ import type { Database } from "@/types/database";
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 /** Kolone koje se čitaju za profil (bez updated_at, koji interfejsu ne treba). */
-const PROFILE_COLUMNS = "id, full_name, email, avatar_url, role, locale, is_active, created_at";
+export const PROFILE_COLUMNS =
+  "id, full_name, email, avatar_url, role, locale, is_active, created_at";
 
 /**
  * Pretvara red iz baze (snake_case) u oblik koji vraća API (camelCase).

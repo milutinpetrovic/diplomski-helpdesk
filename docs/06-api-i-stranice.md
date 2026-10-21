@@ -12,15 +12,15 @@ Spisak svih API ruta i stranica aplikacije. Ova tabela je izvor za Swagger (Open
 - Greška: `{ "error": { "code": "TICKET_NOT_FOUND", "message": "...", "details": {...} } }`.
 - Uspešan odgovor: objekat direktno (bez omotača `data`), `201` za kreiranje, `204` za akcije bez tela.
 
-| HTTP status | Kada                         | Primer koda                                                                                                                                                                             |
-| ----------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 400         | neispravan ulaz              | `VALIDATION_ERROR` (u `details.fields` greške po poljima), `AUTH_CALLBACK_FAILED`                                                                                                       |
-| 401         | nema sesije                  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                                                                |
-| 403         | nema prava                   | `FORBIDDEN`, `ACCOUNT_DISABLED`, `NOT_ASSIGNED_AGENT`, `FORBIDDEN_INTERNAL_COMMENT`, `EMAIL_NOT_CONFIRMED`                                                                              |
-| 404         | ne postoji ili nije vidljivo | `NOT_FOUND`, `TICKET_NOT_FOUND`                                                                                                                                                         |
-| 409         | konflikt stanja              | `INVALID_STATUS_TRANSITION`, `TICKET_ALREADY_ASSIGNED`, `ASSIGNEE_NOT_AGENT`, `TICKET_CLOSED`, `ALREADY_RATED`, `TICKET_NOT_RESOLVED`, `EMAIL_ALREADY_REGISTERED`, `CANNOT_MODIFY_SELF` |
-| 429         | previše zahteva              | `RATE_LIMITED` (Faza A)                                                                                                                                                                 |
-| 500         | neočekivana greška           | `INTERNAL_ERROR`                                                                                                                                                                        |
+| HTTP status | Kada                         | Primer koda                                                                                                                                                                                                    |
+| ----------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 400         | neispravan ulaz              | `VALIDATION_ERROR` (u `details.fields` greške po poljima), `AUTH_CALLBACK_FAILED`                                                                                                                              |
+| 401         | nema sesije                  | `UNAUTHENTICATED`, `INVALID_CREDENTIALS`                                                                                                                                                                       |
+| 403         | nema prava                   | `FORBIDDEN`, `ACCOUNT_DISABLED`, `NOT_ASSIGNED_AGENT`, `FORBIDDEN_INTERNAL_COMMENT`, `EMAIL_NOT_CONFIRMED`                                                                                                     |
+| 404         | ne postoji ili nije vidljivo | `NOT_FOUND`, `TICKET_NOT_FOUND`                                                                                                                                                                                |
+| 409         | konflikt stanja              | `INVALID_STATUS_TRANSITION`, `TICKET_ALREADY_ASSIGNED`, `ASSIGNEE_NOT_AGENT`, `TICKET_CLOSED`, `ALREADY_RATED`, `TICKET_NOT_RESOLVED`, `EMAIL_ALREADY_REGISTERED`, `CANNOT_MODIFY_SELF`, `CATEGORY_SLUG_TAKEN` |
+| 429         | previše zahteva              | `RATE_LIMITED` (Faza A)                                                                                                                                                                                        |
+| 500         | neočekivana greška           | `INTERNAL_ERROR`                                                                                                                                                                                               |
 
 Napomena: zahtev koji korisnik nema pravo da vidi vraća **404**, a ne 403, da se ne otkrije da postoji.
 
@@ -113,9 +113,11 @@ Real-time (Faza 7): zvonce sluša `NOTIFICATION_CREATED` na kanalu `user:<id>` (
 
 | Metod i putanja               | Uloge | Telo / parametri                 | Odgovor                                                                             | UC    |
 | ----------------------------- | ----- | -------------------------------- | ----------------------------------------------------------------------------------- | ----- |
-| `GET /api/admin/users`        | AD    | `?q&role&isActive&page&pageSize` | `Paginated<Profile>`                                                                | UC-21 |
-| `PATCH /api/admin/users/{id}` | AD    | `{ role?, isActive? }`           | `Profile`                                                                           | UC-21 |
+| `GET /api/admin/users`        | AD    | `?q&role&isActive&page&pageSize` | `Paginated<AdminUser>`                                                              | UC-21 |
+| `PATCH /api/admin/users/{id}` | AD    | `{ role?, isActive? }`           | `AdminUser`                                                                         | UC-21 |
 | `GET /api/agents`             | A AD  | —                                | `AgentSummary[]` = `ProfileSummary` + `openAssignedCount` (aktivni agenti i admini) | UC-20 |
+
+`AdminUser` = `Profile` + `openAssignedCount` (dodeljeni zahtevi koji nisu rešeni ni zatvoreni; za korisnika 0). Pretraga `q` traži deo imena ili emaila (bez obzira na velika slova); `isActive` je `true` ili `false`. Admin ne može da menja sopstveni nalog (`409 CANNOT_MODIFY_SELF`). Kad agent ili admin postane korisnik ili bude deaktiviran, njegovi nerešeni zahtevi se vraćaju u red (nedodeljeni, `open`), uz zapis `unassigned` u istoriji; deaktiviran nalog posle toga dobija `403 ACCOUNT_DISABLED` na svakom pozivu. Kategorija sa zauzetom oznakom (`slug`) daje `409 CATEGORY_SLUG_TAKEN`; kategorija se ne briše, nego deaktivira (`isActive: false`), pa nestaje iz forme „Novi zahtev“, a postojeći zahtevi je zadržavaju.
 
 ### Dashboard i analitika (tagovi `Dashboard`, `Analytics`)
 
