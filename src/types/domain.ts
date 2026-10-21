@@ -71,3 +71,13 @@ export const HISTORY_ACTIONS = [
   "updated",
   "rated",
 ] as const satisfies readonly HistoryAction[];
+
+/** Sve vrste obaveštenja (isti redosled kao enum notification_type u bazi). */
+export const NOTIFICATION_TYPES = [
+  "ticket_created",
+  "ticket_assigned",
+  "status_changed",
+  "comment_added",
+  "internal_comment_added",
+  "ticket_rated",
+] as const satisfies readonly NotificationType[];

@@ -436,3 +436,31 @@ sequenceDiagram
         WP--)H: handler(payload)
     end
 ```
+
+## SD-13 Zvonce: novo obaveštenje u realnom vremenu (UC-08, FZ-12, FZ-13)
+
+Agent menja status Aninog zahteva; Anino zvonce i otvorena stranica se ažuriraju bez reload-a. Poruka kroz WebSocket nosi samo ID-jeve; tekst se sastavlja iz prevoda posle učitavanja kroz API.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor AG as Agent
+    participant API as POST /api/tickets/{id}/status
+    participant DB as Supabase Postgres (RPC + RLS)
+    participant RT as Supabase Realtime (WebSocket)
+    participant NB as NotificationBell (useNotifications)
+    participant NAPI as GET /api/notifications
+    actor K as Korisnik (Ana)
+
+    AG->>API: { status: "waiting_on_customer" }
+    API->>DB: rpc change_ticket_status
+    Note over DB: transakcija: UPDATE tickets, INSERT ticket_history,<br/>INSERT notifications (primalac Ana)
+    DB-->>API: zahtev
+    API->>RT: publish("ticket:{id}", TICKET_UPDATED, { ticketId, actorId })
+    DB--)RT: INSERT notifications (postgres_changes, RLS: samo primalac)
+    RT--)NB: NOTIFICATION_CREATED { ticketId, actorId }
+    NB->>NAPI: ?pageSize=5
+    NAPI-->>NB: { items, unreadCount }
+    NB-->>K: brojač na zvoncetu + toast „Zahtev #1003: promenjen status (Jelena Agentić)“
+    NB->>NB: router.refresh() (panel, lista, zahtev)
+```

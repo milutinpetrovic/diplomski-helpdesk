@@ -24,6 +24,7 @@ import { TicketComments } from "@/components/tickets/TicketComments";
 import { TicketHistory } from "@/components/tickets/TicketHistory";
 import { categoryName } from "@/components/tickets/ticket-labels";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TicketLiveRefresh } from "@/components/notifications/LiveRefresh";
 import { requireCurrentUser, type CurrentUser } from "@/lib/auth/server-session";
 import { AppError } from "@/lib/errors/app-error";
 import { uuidSchema } from "@/lib/validation/common";
@@ -100,6 +101,8 @@ export default async function TicketPage({ params }: PageProps<"/tickets/[id]">)
 
   return (
     <>
+      {/* Real-time: komentari, status i dodela drugih se vide bez reload-a (FZ-13). */}
+      <TicketLiveRefresh ticketId={ticket.id} userId={profile.id} />
       {/* Povratak na listu i zaglavlje zahteva. */}
       <Link
         href="/tickets"

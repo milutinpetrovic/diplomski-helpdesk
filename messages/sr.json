@@ -104,7 +104,8 @@
     "logout": "Odjava",
     "tickets": "Zahtevi",
     "myTickets": "Moji zahtevi",
-    "newTicket": "Novi zahtev"
+    "newTicket": "Novi zahtev",
+    "notifications": "Obaveštenja"
   },
   "roles": {
     "customer": "Korisnik",
@@ -159,6 +160,36 @@
     "workloadEmpty": "Nema aktivnih članova tima.",
     "analyticsLink": "Analitika",
     "showList": "Prikaži zahteve: {label}"
+  },
+  "notifications": {
+    "title": "Obaveštenja",
+    "description": "Promene na vašim zahtevima i zahtevima tima, najnovije prve.",
+    "bellLabel": "Obaveštenja",
+    "bellLabelUnread": "Obaveštenja ({count, plural, one {# nepročitano} few {# nepročitana} other {# nepročitanih}})",
+    "markAllRead": "Označi sve kao pročitano",
+    "markedAllRead": "Sva obaveštenja su označena kao pročitana.",
+    "viewAll": "Sva obaveštenja",
+    "loading": "Učitavanje…",
+    "empty": "Nemate obaveštenja.",
+    "emptyUnread": "Nemate nepročitanih obaveštenja.",
+    "unread": "nepročitano",
+    "someone": "Neko",
+    "open": "Otvori",
+    "filterLabel": "Prikaz obaveštenja",
+    "filterAll": "Sva",
+    "filterUnread": "Nepročitana ({count})",
+    "pagination": "Stranice",
+    "previous": "Prethodna",
+    "next": "Sledeća",
+    "pageStatus": "Stranica {page} od {pages}",
+    "types": {
+      "ticket_created": "Novi zahtev #{number} ({actor})",
+      "ticket_assigned": "Zahtev #{number} vam je dodeljen ({actor})",
+      "status_changed": "Zahtev #{number}: promenjen status ({actor})",
+      "comment_added": "Zahtev #{number}: novi komentar ({actor})",
+      "internal_comment_added": "Zahtev #{number}: nova interna beleška ({actor})",
+      "ticket_rated": "Zahtev #{number} je ocenjen ({actor})"
+    }
   },
   "placeholder": {
     "text": "Ova stranica je u izradi i uskoro će biti dostupna."

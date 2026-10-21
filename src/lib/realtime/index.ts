@@ -35,16 +35,32 @@ function websocketNotImplemented(): never {
   );
 }
 
-/** Vraća provajdera za slušanje događaja (pregledač). */
+/** Provajderi po klijentu: svi hook-ovi na stranici dele jedan (i iste kanale). */
+const providers = new WeakMap<DbClient, RealtimeProvider>();
+
+/**
+ * Vraća provajdera za slušanje događaja (pregledač). Za isti Supabase klijent
+ * uvek vraća isti primerak, da bi više hook-ova delilo otvorene kanale.
+ */
 export function getRealtimeProvider(client: DbClient): RealtimeProvider {
-  return getRealtimeProviderName() === "supabase"
-    ? new SupabaseRealtimeProvider(client)
-    : websocketNotImplemented();
+  if (getRealtimeProviderName() !== "supabase") return websocketNotImplemented();
+  let provider = providers.get(client);
+  if (!provider) {
+    provider = new SupabaseRealtimeProvider(client);
+    providers.set(client, provider);
+  }
+  return provider;
 }
 
-/** Vraća provajdera za slanje događaja (server, servisni sloj). */
-export function getRealtimePublisher(client: DbClient): RealtimePublisher {
+/**
+ * Vraća provajdera za slanje događaja (server, servisni sloj).
+ * Ulaz: Supabase klijent zahteva i token iz zaglavlja Authorization (ako ga ima).
+ */
+export function getRealtimePublisher(
+  client: DbClient,
+  accessToken: string | null = null,
+): RealtimePublisher {
   return getRealtimeProviderName() === "supabase"
-    ? new SupabaseRealtimePublisher(client)
+    ? new SupabaseRealtimePublisher(client, accessToken)
     : websocketNotImplemented();
 }

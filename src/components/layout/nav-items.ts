@@ -6,9 +6,10 @@
  * za /admin i /analytics) i API (withApi).
  * Koriste ga: NavLinks (meni na računaru i na telefonu).
  * Korisnik vidi „Moji zahtevi“ i „Novi zahtev“, a tim podrške „Zahtevi“ (ista
- * stranica /tickets, drugačiji naziv). Stavka „Obaveštenja“ dolazi u Fazi 7.
+ * stranica /tickets, drugačiji naziv). „Obaveštenja“ vide sve uloge (Faza 7).
  */
 import {
+  Bell,
   ChartColumn,
   FileCode2,
   LayoutDashboard,
@@ -30,6 +31,7 @@ export interface NavItem {
     | "tickets"
     | "myTickets"
     | "newTicket"
+    | "notifications"
     | "profile"
     | "analytics"
     | "users"
@@ -52,6 +54,12 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { key: "myTickets", href: "/tickets", icon: ListTodo, roles: ["customer"] },
   { key: "newTicket", href: "/tickets/new", icon: SquarePen, roles: ["customer"] },
   { key: "tickets", href: "/tickets", icon: ListTodo, roles: ["agent", "admin"] },
+  {
+    key: "notifications",
+    href: "/notifications",
+    icon: Bell,
+    roles: ["customer", "agent", "admin"],
+  },
   { key: "analytics", href: "/analytics", icon: ChartColumn, roles: ["admin"] },
   { key: "users", href: "/admin/users", icon: Users, roles: ["admin"] },
   { key: "categories", href: "/admin/categories", icon: Tags, roles: ["admin"] },

@@ -1,12 +1,15 @@
 /**
  * Fajl: src/components/layout/AppShell.tsx
  * Svrha: glavni raspored zaštićenog dela aplikacije (posle prijave):
- *   - zaglavlje: dugme menija (telefon), naziv aplikacije, izbor jezika, ime i uloga, odjava
+ *   - zaglavlje: dugme menija (telefon), naziv aplikacije, izbor jezika,
+ *     zvonce sa obaveštenjima, ime i uloga, odjava
  *   - bočni meni sa stavkama po ulozi (računar, od 768 px)
  *   - sadržaj stranice
  * Koristi ga: src/app/(app)/layout.tsx.
  * Povezano sa: NavLinks / nav-items.ts (meni po ulozi), MobileNav, LogoutButton,
- * LanguageSwitcher (za prijavljenog čuva jezik i u profilu).
+ * LanguageSwitcher (za prijavljenog čuva jezik i u profilu), NotificationBell
+ * (obaveštenja u realnom vremenu) i StaffLiveRefresh (osvežavanje liste i
+ * panela za tim podrške).
  */
 import type * as React from "react";
 import Link from "next/link";
@@ -16,23 +19,30 @@ import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import { LogoutButton } from "@/components/layout/LogoutButton";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { NavLinks } from "@/components/layout/NavLinks";
+import { StaffLiveRefresh } from "@/components/notifications/LiveRefresh";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import type { Profile } from "@/lib/validation/profile";
 
 /**
  * Raspored sa menijem (serverska komponenta).
- * Ulaz: profil prijavljenog korisnika i sadržaj stranice.
+ * Ulaz: profil prijavljenog korisnika, broj nepročitanih obaveštenja i sadržaj stranice.
  */
 export async function AppShell({
   profile,
+  unreadCount,
   children,
 }: {
   profile: Profile;
+  unreadCount: number;
   children: React.ReactNode;
 }) {
   const t = await getTranslations();
 
   return (
     <div className="flex flex-1 flex-col">
+      {/* Real-time osvežavanje liste i panela za agenta i admina (ništa ne prikazuje). */}
+      <StaffLiveRefresh isStaff={profile.role !== "customer"} userId={profile.id} />
+
       {/* Link za korisnike tastature: preskače meni i vodi pravo na sadržaj (NFZ-4). */}
       <a
         href="#main"
@@ -50,6 +60,7 @@ export async function AppShell({
           </Link>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher persist />
+            <NotificationBell userId={profile.id} unreadCount={unreadCount} />
             {/* Ime i uloga; na telefonu samo ime, skraćeno ako je dugačko. */}
             <div className="hidden min-w-0 flex-col items-end leading-tight sm:flex">
               <span className="max-w-40 truncate text-sm font-medium">{profile.fullName}</span>

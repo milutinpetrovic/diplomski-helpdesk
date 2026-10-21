@@ -435,12 +435,14 @@ classDiagram
 
 Ovo nisu klase, ali su deo arhitekture i treba ih navesti u radu.
 
-| Hook                                    | Fajl                           | Šta radi                                                                                                                  |
-| --------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `useCurrentUser()`                      | `hooks/use-current-user.ts`    | Profil i uloga prijavljenog korisnika (iz server komponente prosleđen kroz context).                                      |
-| `useNotifications()`                    | `hooks/use-notifications.ts`   | Lista + brojač nepročitanih; pretplata na `notifications` (INSERT za mene); na događaj osvežava brojač i prikazuje toast. |
-| `useTicketRealtime(ticketId, onChange)` | `hooks/use-ticket-realtime.ts` | Pretplata na kanal `ticket:<id>`; na događaj poziva `onChange` (ponovno učitavanje kroz API).                             |
-| `useTickets(filters)`                   | `hooks/use-tickets.ts`         | Lista zahteva sa filterima i paginacijom (filteri u URL query parametrima).                                               |
+| Hook                                  | Fajl                           | Šta radi                                                                                                                  |
+| ------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `useCurrentUser()`                    | `hooks/use-current-user.ts`    | Profil i uloga prijavljenog korisnika (iz server komponente prosleđen kroz context).                                      |
+| `useNotifications(userId, unread)`    | `hooks/use-notifications.ts`   | Lista + brojač nepročitanih; pretplata na `notifications` (INSERT za mene); na događaj osvežava brojač i prikazuje toast. |
+| `useTicketRealtime(ticketId, userId)` | `hooks/use-ticket-realtime.ts` | Pretplata na kanal `ticket:<id>`; na tuđi događaj ponovo učitava stranicu (`router.refresh`).                             |
+| `useStaffRealtime(isStaff, userId)`   | `hooks/use-staff-realtime.ts`  | Agent i admin: kanal `staff`; osvežava panel, listu i stranicu zahteva.                                                   |
+| `useRealtimeEvents(subs, onEvent)`    | `hooks/use-realtime-events.ts` | Zajednička pretplata preko `RealtimeProvider` interfejsa (nikad direktno na Supabase) i odjava pri napuštanju stranice.   |
+| `useTickets(filters)`                 | `hooks/use-tickets.ts`         | Lista zahteva sa filterima i paginacijom (filteri u URL query parametrima).                                               |
 
 | Komponenta                                                                                          | Folder                      | Opis                                                                                              |
 | --------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------- |
