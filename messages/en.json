@@ -12,7 +12,8 @@
   },
   "common": {
     "appName": "Technical Support",
-    "or": "or"
+    "or": "or",
+    "closeDialog": "Close"
   },
   "home": {
     "title": "Technical Support",
@@ -88,7 +89,13 @@
     "descriptionLength": "The description must be 10 to 5000 characters long.",
     "commentLength": "The comment must be 1 to 5000 characters long.",
     "scoreRange": "Choose a rating from 1 to 5 stars.",
-    "ratingCommentLength": "The rating comment can be at most 1000 characters long."
+    "ratingCommentLength": "The rating comment can be at most 1000 characters long.",
+    "rangeOrder": "The “from” date cannot be after the “to” date.",
+    "rangeTooLong": "The period can be at most 366 days long.",
+    "slugFormat": "The slug may contain only lowercase letters, digits and hyphens (up to 60 characters).",
+    "categoryNameLength": "The name must be 2 to 60 characters long.",
+    "categoryDescriptionLength": "The description may be at most 300 characters long.",
+    "sortOrderRange": "The order must be a whole number from 0 to 1000."
   },
   "nav": {
     "label": "Main menu",
@@ -190,9 +197,6 @@
       "internal_comment_added": "{actor} added an internal note to ticket #{number}",
       "ticket_rated": "{actor} rated ticket #{number}"
     }
-  },
-  "placeholder": {
-    "text": "This page is under construction and will be available soon."
   },
   "forbidden": {
     "title": "Access denied",
@@ -381,11 +385,173 @@
     "TICKET_NOT_RESOLVED": "A ticket can be rated only after it is resolved.",
     "EMAIL_ALREADY_REGISTERED": "An account with this email address already exists.",
     "CANNOT_MODIFY_SELF": "You cannot change the role or status of your own account.",
+    "CATEGORY_SLUG_TAKEN": "A category with this slug already exists.",
     "RATE_LIMITED": "Too many attempts. Try again in a few minutes.",
     "INTERNAL_ERROR": "An unexpected error occurred. Please try again."
   },
   "apiDocs": {
     "title": "API documentation",
     "description": "All application API calls (OpenAPI 3). For calls that require sign-in, click “Authorize” and enter an access token (JWT)."
+  },
+  "analytics": {
+    "description": "Support team performance in the selected period. Times are in the Belgrade time zone.",
+    "periodLabel": "Period",
+    "preset": "{count, plural, one {Last # day} other {Last # days}}",
+    "presetShort": "{count}d",
+    "customRange": "Custom range",
+    "from": "From",
+    "to": "To",
+    "apply": "Show",
+    "rangeSummary": "{from} – {to}",
+    "invalidRange": "The period in the address is not valid, so the last 30 days are shown.",
+    "noData": "—",
+    "showTable": "Show data as a table",
+    "kpi": {
+      "label": "Key indicators",
+      "created": "New tickets",
+      "resolved": "Resolved tickets",
+      "open": "Currently open",
+      "openHint": "Does not depend on the period",
+      "firstResponse": "Average first response",
+      "resolution": "Average resolution time",
+      "csat": "Average rating (CSAT)",
+      "closedHint": "{count} closed"
+    },
+    "duration": {
+      "minutes": "{m} min",
+      "hours": "{h} h {m} min",
+      "days": "{d} d {h} h"
+    },
+    "trend": {
+      "title": "Created and resolved tickets",
+      "byDay": "Per day",
+      "byWeek": "Per week (from Monday)",
+      "created": "Created",
+      "resolved": "Resolved",
+      "date": "Date",
+      "weekOf": "Week of {date}"
+    },
+    "dimension": {
+      "title": "Breakdown of new tickets",
+      "label": "Breakdown view",
+      "status": "By status",
+      "category": "By category",
+      "priority": "By priority",
+      "group": "Group",
+      "count": "Tickets",
+      "empty": "There are no new tickets in this period."
+    },
+    "agents": {
+      "title": "Team performance",
+      "note": "Results count for the agent the ticket is currently assigned to.",
+      "member": "Team member",
+      "assigned": "Assigned",
+      "resolved": "Resolved",
+      "avgResolution": "Average resolution",
+      "avgRating": "Average rating",
+      "inactive": "inactive",
+      "ratingCount": "{count, plural, one {# rating} other {# ratings}}",
+      "sortBy": "Sort by column: {column}",
+      "empty": "No team members with results in this period."
+    },
+    "csat": {
+      "title": "Satisfaction ratings",
+      "average": "Average {average} out of 5",
+      "count": "{count, plural, one {# rating} other {# ratings}}",
+      "score": "Rating",
+      "stars": "{score, plural, one {# star} other {# stars}}",
+      "empty": "There are no ratings in this period.",
+      "countColumn": "Number of ratings"
+    }
+  },
+  "admin": {
+    "users": {
+      "description": "All accounts: search, change roles and deactivate.",
+      "caption": "Accounts",
+      "total": "{total, plural, one {# account} other {# accounts}}",
+      "empty": "No accounts match the selected filters.",
+      "filters": {
+        "label": "Account search",
+        "search": "Search",
+        "searchPlaceholder": "Name or email",
+        "searchSubmit": "Search",
+        "allRoles": "All roles",
+        "all": "All",
+        "active": "Active",
+        "inactive": "Deactivated",
+        "reset": "Reset filters"
+      },
+      "columns": {
+        "role": "Role",
+        "status": "Status"
+      },
+      "statusInactive": "Deactivated",
+      "selfBadge": "You",
+      "self": "This is your account. You cannot change your own role or account.",
+      "openTickets": "{count, plural, one {# unresolved ticket} other {# unresolved tickets}}",
+      "saveRole": "Save",
+      "saveRoleFor": "Save role for {name}",
+      "deactivate": "Deactivate",
+      "deactivateFor": "Deactivate account {name}",
+      "activate": "Activate",
+      "activateFor": "Activate account {name}",
+      "roleChanged": "New role for {name}: {role}.",
+      "deactivated": "Account {name} has been deactivated.",
+      "activated": "Account {name} is active again.",
+      "confirm": {
+        "titleRole": "Change the role for {name}?",
+        "titleDeactivate": "Deactivate account {name}?",
+        "roleText": "New role: {role}.",
+        "deactivateText": "{name} will not be able to sign in until you activate the account again.",
+        "openTickets": "{name} has {count, plural, one {# unresolved ticket} other {# unresolved tickets}}. They will go back to the queue.",
+        "confirmRole": "Change role",
+        "confirmDeactivate": "Deactivate",
+        "cancel": "Cancel"
+      },
+      "pagination": {
+        "label": "Account pages",
+        "previous": "Previous",
+        "next": "Next",
+        "status": "Page {page} of {pages}"
+      }
+    },
+    "categories": {
+      "description": "Categories customers choose when reporting a ticket. Categories are not deleted but deactivated: existing tickets keep them.",
+      "caption": "Categories",
+      "empty": "There are no categories yet.",
+      "new": "New category",
+      "columns": {
+        "order": "Order",
+        "slug": "Slug"
+      },
+      "statusInactive": "Inactive",
+      "edit": "Edit",
+      "editFor": "Edit category {name}",
+      "deactivate": "Deactivate",
+      "deactivateFor": "Deactivate category {name}",
+      "activate": "Activate",
+      "activateFor": "Activate category {name}",
+      "created": "Category “{name}” has been added.",
+      "updated": "Category “{name}” has been saved.",
+      "deactivated": "Category “{name}” has been deactivated. Existing tickets keep it.",
+      "activated": "Category “{name}” is active again.",
+      "form": {
+        "titleCreate": "New category",
+        "titleEdit": "Edit category",
+        "description": "Customers see the name and description in the language they chose.",
+        "nameSr": "Name (Serbian)",
+        "nameEn": "Name (English)",
+        "descriptionSr": "Description (Serbian)",
+        "descriptionEn": "Description (English)",
+        "descriptionHint": "Optional, up to 300 characters.",
+        "slug": "Slug",
+        "slugHint": "Lowercase letters, digits and hyphens, e.g. network.",
+        "sortOrder": "Order",
+        "sortOrderHint": "A lower number comes earlier in lists.",
+        "submitCreate": "Add category",
+        "submitEdit": "Save",
+        "cancel": "Cancel"
+      }
+    }
   }
 }

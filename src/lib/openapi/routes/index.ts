@@ -15,3 +15,4 @@ import "@/lib/openapi/routes/categories";
 import "@/lib/openapi/routes/admin";
 import "@/lib/openapi/routes/dashboard";
 import "@/lib/openapi/routes/notifications";
+import "@/lib/openapi/routes/analytics";

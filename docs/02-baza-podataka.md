@@ -304,14 +304,21 @@ Interne pomoćne funkcije su u šemi `private` (nije izložena kroz Supabase API
 
 ## 6. Funkcije za analitiku (RPC)
 
-Sve primaju period `p_from timestamptz, p_to timestamptz`, dostupne samo adminu (provera `current_user_role() = 'admin'` na početku funkcije).
+Migracija `20261021100000_analytics.sql` (Faza 8). Sve primaju period `p_from date, p_to date`: dane po beogradskom vremenu, oba uključena (npr. `2026-10-01 .. 2026-10-31` je ceo oktobar, i uz prelazak na letnje/zimsko vreme). Period je najviše 366 dana, a `p_from` ne sme biti posle `p_to` (`VALIDATION_ERROR`). Funkcije su `security invoker` (važi RLS) i na početku proveravaju da je pozivalac aktivan admin (`FORBIDDEN`); proveru i granice perioda radi pomoćna `analytics_bounds(p_from, p_to)`. Sva vremena se vraćaju u **minutima**.
 
-| Funkcija                                            | Vraća                                                                                                                                                          |
-| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `analytics_overview(p_from, p_to)`                  | ukupno kreiranih, rešenih, zatvorenih; trenutno otvorenih; prosečno vreme prvog odgovora (min); prosečno vreme rešavanja (h); prosečna CSAT ocena i broj ocena |
-| `analytics_by_dimension(p_from, p_to, p_dimension)` | broj zahteva grupisano po `status`, `category` ili `priority`                                                                                                  |
-| `analytics_agents(p_from, p_to)`                    | po agentu: dodeljeno, rešeno, prosečno vreme rešavanja, prosečna ocena                                                                                         |
-| `analytics_trend(p_from, p_to, p_bucket)`           | po danu/nedelji: broj kreiranih i rešenih                                                                                                                      |
+| Funkcija                                            | Vraća                                                                                                                                                                             |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `analytics_overview(p_from, p_to)`                  | kreirano, rešeno i zatvoreno u periodu; trenutno nerešenih; prosečno vreme prvog odgovora i rešavanja (min); prosečna CSAT ocena, broj ocena i raspodela ocena 1–5 (`integer[5]`) |
+| `analytics_by_dimension(p_from, p_to, p_dimension)` | broj zahteva kreiranih u periodu po `status`, `category` (ključ je ID kategorije) ili `priority`; samo postojeće grupe (nule i nazive dodaje servis)                              |
+| `analytics_agents(p_from, p_to)`                    | po članu tima (aktivan ili sa rezultatom): dodeljeno, rešeno, prosečno vreme rešavanja (min), prosečna ocena i broj ocena                                                         |
+| `analytics_trend(p_from, p_to, p_bucket)`           | za svaki dan (`day`) ili nedelju od ponedeljka (`week`) u periodu, i one bez zahteva: broj kreiranih i rešenih                                                                    |
+
+Šta se broji:
+
+- „kreirani“: `created_at` u periodu; „rešeni“: `resolved_at` u periodu (zatvoren zahtev zadržava `resolved_at`); „zatvoreni“: `closed_at` u periodu
+- vreme prvog odgovora: `created_at → first_response_at`, za zahteve kreirane u periodu; vreme rešavanja: `created_at → resolved_at`, za zahteve rešene u periodu
+- CSAT: ocene date u periodu; „trenutno otvoreni“ ne zavise od perioda
+- učinak agenta se računa po **trenutno** dodeljenom agentu (ako je zahtev predat drugom, rezultat ide njemu)
 
 Za kontrolni panel (Faza 6, migracija `20261021080000_dashboard.sql`) postoje dve funkcije sa pravima pozivaoca (`security invoker`, važi RLS):
 
@@ -345,13 +352,13 @@ Neaktivan nalog (`is_active = false`): sve politike dodatno zahtevaju da je prij
 
 Izmena komentara (autor, u roku od 15 min) je odložena kao moguće proširenje.
 
-## 9. Demo podaci (`supabase/seed.sql` + `scripts/seed-demo.ts`)
+## 9. Demo podaci (`supabase/seed.sql` + `scripts/seed-demo.mts`)
 
 - `supabase/seed.sql` (Faza 2, lokalni razvoj i testovi): 5 kategorija i 5 naloga sa fiksnim ID-jevima — `admin@helpdesk.test`, `agent@helpdesk.test`, `agent2@helpdesk.test`, `ana@helpdesk.test`, `marko@helpdesk.test`, lozinka `Lozinka123!` (README).
 - Isti fajl (Faza 5): 12 demo zahteva (#1001–#1012, fiksni ID-jevi `20000000-...-0000000000NN`) u svim statusima, sa komentarima, internim beleškama, istorijom i jednom ocenom; vremena su relativna u odnosu na `now()`.
-- `scripts/seed-demo.ts` (Faza 8): 1 admin, 4 agenta, 20 korisnika.
+- `scripts/seed-demo.mts` (Faza 8, `pnpm seed:demo`, koristi `SUPABASE_SERVICE_ROLE_KEY`): uz naloge iz seed.sql pravi još 2 agenta i 18 korisnika (`ime.prezime@demo.helpdesk.test`, lozinka `Lozinka123!`), ukupno 1 admin, 4 agenta, 20 korisnika. Agenti rade različitom brzinom i imaju različite ocene, da se tabela učinka realno razlikuje. Ponovno pokretanje briše samo zahteve demo korisnika i pravi ih iznova.
 - 5 kategorija (sr + en nazivi).
-- ~150 zahteva raspoređenih kroz poslednjih 6 meseci, sa realnim odnosom statusa (većina `closed`/`resolved`, deo otvorenih), različitim prioritetima i agentima.
+- ~150–175 zahteva raspoređenih kroz poslednjih 6 meseci (radnim danima više, blagi rast kroz vreme; deo zahteva „zastane“ i rešava se nedeljama, pa uvek ima nerešenih), sa realnim odnosom statusa (većina `closed`/`resolved`, deo otvorenih), različitim prioritetima i agentima.
 - Za svaki zahtev 1–8 komentara (deo internih), konzistentna istorija i vremenske oznake (`first_response_at` posle `created_at`, `resolved_at` posle toga).
 - Ocene za ~60% rešenih zahteva (raspodela pretežno 4–5, nešto 1–3).
 - Skripta mora biti deterministička (fiksni seed za generator slučajnih brojeva) da bi grafikoni na odbrani uvek izgledali isto.
