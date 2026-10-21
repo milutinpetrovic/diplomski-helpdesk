@@ -467,6 +467,56 @@ export type Database = {
           resolved_count: number;
         }[];
       };
+      analytics_agents: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          agent_id: string;
+          assigned_count: number;
+          avg_rating: number;
+          avg_resolution_minutes: number;
+          full_name: string;
+          is_active: boolean;
+          rating_count: number;
+          resolved_count: number;
+          role: Database["public"]["Enums"]["user_role"];
+        }[];
+      };
+      analytics_bounds: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          range_end: string;
+          range_start: string;
+        }[];
+      };
+      analytics_by_dimension: {
+        Args: { p_dimension: string; p_from: string; p_to: string };
+        Returns: {
+          key: string;
+          total: number;
+        }[];
+      };
+      analytics_overview: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          avg_first_response_minutes: number;
+          avg_rating: number;
+          avg_resolution_minutes: number;
+          closed_count: number;
+          created_count: number;
+          open_count: number;
+          rating_count: number;
+          rating_distribution: number[];
+          resolved_count: number;
+        }[];
+      };
+      analytics_trend: {
+        Args: { p_bucket: string; p_from: string; p_to: string };
+        Returns: {
+          bucket_start: string;
+          created_count: number;
+          resolved_count: number;
+        }[];
+      };
       assign_ticket: {
         Args: { p_assignee_id?: string; p_ticket_id: string };
         Returns: {

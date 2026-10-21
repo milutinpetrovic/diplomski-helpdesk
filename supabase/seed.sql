@@ -14,7 +14,7 @@
 --   4. obaveštenja za te zahteve, novija nepročitana (Faza 7)
 --
 -- ID-jevi naloga su fiksni da bi ih testovi mogli koristiti.
--- Veliki skup demo zahteva (~150) pravi skripta u Fazi 8 (scripts/seed-demo.ts).
+-- Veliki skup demo zahteva (~150) pravi skripta u Fazi 8 (scripts/seed-demo.mts).
 -- =============================================================================
 
 -- Korak 1: kategorije (fiksni ID-jevi radi testova).

@@ -130,10 +130,22 @@ Oblik `DashboardData` (Faza 6, `src/lib/validation/dashboard.ts`):
 - `admin`: `statusCounts`, `openCount`, `unassignedCount`, `urgentCount`, `workload[]` (`AgentSummary`), `unassignedQueue[]`
 
 Liste imaju najviše 5 zahteva (`DashboardTicket`). „Otvoreni“, „nedodeljeni“ i „hitni“ broje samo nerešene zahteve, a njihovi linkovi vode na `/tickets?status=unresolved&...`, pa lista prikazuje iste zahteve koji su prebrojani.
-| `GET /api/analytics/overview` | AD | `?from&to` | `AnalyticsOverview` | UC-23 |
-| `GET /api/analytics/by-dimension` | AD | `?from&to&dimension(status\|category\|priority)` | `CountItem[]` | UC-23 |
-| `GET /api/analytics/agents` | AD | `?from&to` | `AgentStats[]` | UC-23 |
-| `GET /api/analytics/trend` | AD | `?from&to&bucket(day\|week)` | `TrendPoint[]` | UC-23 |
+
+Analitika (Faza 8, samo admin; agent i korisnik dobijaju `403 FORBIDDEN`):
+
+| Metod i putanja                   | Uloge | Telo / parametri                                 | Odgovor             | UC    |
+| --------------------------------- | ----- | ------------------------------------------------ | ------------------- | ----- |
+| `GET /api/analytics/overview`     | AD    | `?from&to`                                       | `AnalyticsOverview` | UC-23 |
+| `GET /api/analytics/by-dimension` | AD    | `?from&to&dimension(status\|category\|priority)` | `CountItem[]`       | UC-23 |
+| `GET /api/analytics/agents`       | AD    | `?from&to`                                       | `AgentStats[]`      | UC-23 |
+| `GET /api/analytics/trend`        | AD    | `?from&to&bucket(day\|week)`                     | `TrendPoint[]`      | UC-23 |
+
+Period: `from` i `to` su datumi (`2026-10-21`, dani po beogradskom vremenu, oba uključena); bez njih poslednjih 30 dana, najviše 366 dana. `bucket` bez vrednosti: po danu do 62 dana, inače po nedelji. Sva vremena su u minutima, a proseci su `null` kad nema podataka.
+
+- `AnalyticsOverview`: `from`, `to`, `createdCount`, `resolvedCount`, `closedCount`, `openCount` (trenutno, ne zavisi od perioda), `avgFirstResponseMinutes`, `avgResolutionMinutes`, `csat { average, count, distribution[{ score, count }] }`
+- `CountItem`: `key` (status, prioritet ili ID kategorije), `total`, `nameSr`, `nameEn` (samo za kategorije); vraćaju se sve vrednosti, i one sa nulom
+- `AgentStats`: `agentId`, `fullName`, `role`, `isActive`, `assignedCount`, `resolvedCount`, `avgResolutionMinutes`, `avgRating`, `ratingCount`
+- `TrendPoint`: `bucketStart` (prvi dan dana/nedelje), `createdCount`, `resolvedCount`
 
 ### Dokumentacija (tag `Docs`)
 
@@ -153,30 +165,30 @@ Liste imaju najviše 5 zahteva (`DashboardTicket`). „Otvoreni“, „nedodelje
 | `ratings.ts`    | `rateTicketSchema` (score int 1–5, comment max 1000)                                                                                                                                                                                      |
 | `categories.ts` | `categorySchema`, `updateCategorySchema`                                                                                                                                                                                                  |
 | `admin.ts`      | `userListQuerySchema`, `adminUpdateUserSchema` (bar jedno polje)                                                                                                                                                                          |
-| `analytics.ts`  | `dateRangeQuerySchema` (from < to, max 366 dana, podrazumevano poslednjih 30), `byDimensionQuerySchema`, `trendQuerySchema`                                                                                                               |
+| `analytics.ts`  | `dateRangeQuerySchema` (datumi, from <= to, max 366 dana, podrazumevano poslednjih 30), `byDimensionQuerySchema`, `trendQuerySchema`                                                                                                      |
 | `common.ts`     | `paginationSchema`, `uuidSchema`, `idParamsSchema`, `paginatedSchema()`, `profileSummarySchema`                                                                                                                                           |
 
 Svaka šema se koristi na tri mesta: forma (react-hook-form + `zodResolver`), API ruta (`withApi`) i OpenAPI registar (`.openapi({ example })`).
 
 ## 4. Stranice (App Router)
 
-| Putanja             | Fajl                                  | Pristup         | Render                   | Sadržaj                                                                                                  |
-| ------------------- | ------------------------------------- | --------------- | ------------------------ | -------------------------------------------------------------------------------------------------------- |
-| `/`                 | `app/page.tsx`                        | svi             | statički (SSG)           | Kratka početna: šta je aplikacija, dugmad Prijava/Registracija; prijavljenog preusmerava na `/dashboard` |
-| `/login`            | `app/(auth)/login/page.tsx`           | gost            | SSR                      | Email + lozinka, „Nastavi sa Google nalogom“, link na registraciju i zaboravljenu lozinku                |
-| `/register`         | `app/(auth)/register/page.tsx`        | gost            | SSR                      | Forma + Google dugme                                                                                     |
-| `/forgot-password`  | `app/(auth)/forgot-password/page.tsx` | gost            | SSR                      | Unos emaila                                                                                              |
-| `/reset-password`   | `app/(auth)/reset-password/page.tsx`  | sesija iz linka | SSR                      | Nova lozinka                                                                                             |
-| `/dashboard`        | `app/(app)/dashboard/page.tsx`        | C A AD          | SSR + real-time          | Dashboard po ulozi (UC-25)                                                                               |
-| `/tickets`          | `app/(app)/tickets/page.tsx`          | C A AD          | SSR + klijentski filteri | Lista, filteri u URL-u, paginacija                                                                       |
-| `/tickets/new`      | `app/(app)/tickets/new/page.tsx`      | C               | SSR                      | Forma za novi zahtev                                                                                     |
-| `/tickets/[id]`     | `app/(app)/tickets/[id]/page.tsx`     | C A AD          | SSR + real-time          | Detalji, akcije, komentari, istorija, ocena                                                              |
-| `/notifications`    | `app/(app)/notifications/page.tsx`    | C A AD          | SSR + real-time          | Sva obaveštenja                                                                                          |
-| `/profile`          | `app/(app)/profile/page.tsx`          | C A AD          | SSR                      | Ime, jezik, (lozinka ako nije Google nalog)                                                              |
-| `/analytics`        | `app/(app)/analytics/page.tsx`        | AD              | klijentski grafikoni     | UC-23                                                                                                    |
-| `/admin/users`      | `app/(app)/admin/users/page.tsx`      | AD              | SSR                      | UC-21                                                                                                    |
-| `/admin/categories` | `app/(app)/admin/categories/page.tsx` | AD              | SSR                      | UC-22                                                                                                    |
-| `/api-docs`         | `app/api-docs/page.tsx`               | vidi gore       | klijent                  | Swagger UI                                                                                               |
+| Putanja             | Fajl                                  | Pristup         | Render                     | Sadržaj                                                                                                  |
+| ------------------- | ------------------------------------- | --------------- | -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `/`                 | `app/page.tsx`                        | svi             | statički (SSG)             | Kratka početna: šta je aplikacija, dugmad Prijava/Registracija; prijavljenog preusmerava na `/dashboard` |
+| `/login`            | `app/(auth)/login/page.tsx`           | gost            | SSR                        | Email + lozinka, „Nastavi sa Google nalogom“, link na registraciju i zaboravljenu lozinku                |
+| `/register`         | `app/(auth)/register/page.tsx`        | gost            | SSR                        | Forma + Google dugme                                                                                     |
+| `/forgot-password`  | `app/(auth)/forgot-password/page.tsx` | gost            | SSR                        | Unos emaila                                                                                              |
+| `/reset-password`   | `app/(auth)/reset-password/page.tsx`  | sesija iz linka | SSR                        | Nova lozinka                                                                                             |
+| `/dashboard`        | `app/(app)/dashboard/page.tsx`        | C A AD          | SSR + real-time            | Dashboard po ulozi (UC-25)                                                                               |
+| `/tickets`          | `app/(app)/tickets/page.tsx`          | C A AD          | SSR + klijentski filteri   | Lista, filteri u URL-u, paginacija                                                                       |
+| `/tickets/new`      | `app/(app)/tickets/new/page.tsx`      | C               | SSR                        | Forma za novi zahtev                                                                                     |
+| `/tickets/[id]`     | `app/(app)/tickets/[id]/page.tsx`     | C A AD          | SSR + real-time            | Detalji, akcije, komentari, istorija, ocena                                                              |
+| `/notifications`    | `app/(app)/notifications/page.tsx`    | C A AD          | SSR + real-time            | Sva obaveštenja                                                                                          |
+| `/profile`          | `app/(app)/profile/page.tsx`          | C A AD          | SSR                        | Ime, jezik, (lozinka ako nije Google nalog)                                                              |
+| `/analytics`        | `app/(app)/analytics/page.tsx`        | AD              | SSR + klijentski grafikoni | UC-23: period u adresi (`?from&to`), KPI kartice, trend, raspodela, CSAT, tabela agenata (Recharts)      |
+| `/admin/users`      | `app/(app)/admin/users/page.tsx`      | AD              | SSR                        | UC-21                                                                                                    |
+| `/admin/categories` | `app/(app)/admin/categories/page.tsx` | AD              | SSR                        | UC-22                                                                                                    |
+| `/api-docs`         | `app/api-docs/page.tsx`               | vidi gore       | klijent                    | Swagger UI                                                                                               |
 
 Zaštita stranica: `proxy.ts` preusmerava neprijavljene sa `(app)` na `/login?next=...` i prijavljene sa `(auth)` na `/dashboard`. Provera uloge za `/analytics` i `/admin/*` radi se u `layout.tsx` tih foldera (server), a ne samo sakrivanjem linka u meniju.
 

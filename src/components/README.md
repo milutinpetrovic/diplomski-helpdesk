@@ -10,3 +10,9 @@ Spisak planiranih komponenti: `docs/03-dijagram-klasa.md`, sekcija 5.
 - `TicketList` (tabela na računaru, kartice na telefonu), `TicketFilters` (filteri u adresi), `TicketPagination`
 - `NewTicketForm`, `TicketActions` (dugmad po `permissions`), `TicketComments` + `CommentForm`, `TicketHistory`, `RatingForm` + `RatingStars`, `TicketBadges`
 - `ticket-labels.ts` (boje, nazivi dugmadi prelaza, sortiranja) i `list-params.ts` (adresa <-> filteri) su čiste funkcije pokrivene testom `tests/unit/ticket-ui.test.ts`.
+
+## analytics/ (Faza 8)
+
+- `AnalyticsFilters` (period u adresi: brzi izbori i svoj period), `KpiCards`, `TicketsTrendChart`, `ByDimensionChart`, `CsatChart`, `AgentsTable` (sortiranje klikom na kolonu)
+- Grafikoni su Recharts (klijentske komponente); ispod svakog je `ChartDataTable` — isti podaci kao tabela (pristupačnost).
+- `analytics-format.ts` (trajanje, ocena, naziv grupe) i `sortAgents` su pokriveni testom `tests/unit/analytics.test.ts`.

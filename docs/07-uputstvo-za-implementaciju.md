@@ -30,7 +30,7 @@ Ostali paketi: `@supabase/supabase-js`, `@supabase/ssr`, `react-hook-form`, `@ho
 | -------------------------------------------------------------- | ----------------------------------- | ----------------------- |
 | `NEXT_PUBLIC_SUPABASE_URL`                                     | klijent i server                    | ne                      |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` (ili novi „publishable“ ključ) | klijent i server                    | ne                      |
-| `SUPABASE_SERVICE_ROLE_KEY`                                    | **samo** `scripts/seed-demo.ts`     | **da** — nikad u `src/` |
+| `SUPABASE_SERVICE_ROLE_KEY`                                    | **samo** `scripts/seed-demo.mts`    | **da** — nikad u `src/` |
 | `NEXT_PUBLIC_SITE_URL`                                         | redirect URL-ovi (OAuth, email)     | ne                      |
 | `NEXT_PUBLIC_REALTIME_PROVIDER`                                | `supabase` \| `websocket`           | ne                      |
 | `NEXT_PUBLIC_REALTIME_WS_URL`                                  | samo ako je `websocket`             | ne                      |
@@ -87,7 +87,7 @@ RPC funkcije (sve `security definer` sa `set search_path = ''`, sve u jednoj tra
 
 Napomena: sve su `security definer` jer upisuju u tabele u koje uloga `authenticated` nema pravo upisa (npr. tuđa obaveštenja, istorija); zato je provera `auth.uid()` i uloge na početku svake funkcije obavezna.
 
-`supabase/seed.sql`: kategorije + demo nalozi za svaku ulogu (admin, 2 agenta, 2 korisnika). `scripts/seed-demo.ts`: realni demo podaci (vidi `02-baza-podataka.md`, sekcija 9).
+`supabase/seed.sql`: kategorije + demo nalozi za svaku ulogu (admin, 2 agenta, 2 korisnika). `scripts/seed-demo.mts`: realni demo podaci (vidi `02-baza-podataka.md`, sekcija 9).
 
 Kriterijumi završetka:
 

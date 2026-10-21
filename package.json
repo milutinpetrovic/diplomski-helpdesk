@@ -15,7 +15,8 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --db-url \"postgresql://postgres:postgres@127.0.0.1:54322/postgres?sslmode=disable\" --schema public > src/types/database.ts && prettier --write src/types/database.ts",
-    "test:unit": "vitest run --project unit"
+    "test:unit": "vitest run --project unit",
+    "seed:demo": "node --env-file-if-exists=.env.local scripts/seed-demo.mts"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "9.1.0",
@@ -35,6 +36,8 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-hook-form": "7.90.0",
+    "react-is": "19.3.0",
+    "recharts": "3.10.1",
     "sonner": "2.0.8",
     "swagger-ui-react": "5.34.0",
     "tailwind-merge": "3.7.0",

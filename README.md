@@ -43,6 +43,15 @@ Lozinka za sve naloge: `Lozinka123!`
 
 Seed pravi i **12 demo zahteva** (#1001–#1012) u svim statusima, sa komentarima, internim beleškama agenata, istorijom i jednom ocenom: Ana i Marko imaju po šest zahteva, a rešavaju ih agenti Jelena i Nikola. Zahtev #1004 je rešen i Ana može da ga oceni. `pnpm db:reset` vraća bazu na ove početne podatke.
 
+### Realni demo podaci za analitiku (`pnpm seed:demo`)
+
+Za grafikone na stranici **Analitika** (i za odbranu) skripta `scripts/seed-demo.mts` dodaje oko 170 zahteva kroz poslednjih 6 meseci, sa komentarima, istorijom i CSAT ocenama, i naloge za još 2 agenta (Marija Petković, Bojan Ristić) i 18 korisnika (`ime.prezime@demo.helpdesk.test`, npr. `ivana.jovanovic@demo.helpdesk.test`, lozinka `Lozinka123!`).
+
+1. U `.env.local` upiši `SUPABASE_SERVICE_ROLE_KEY` (lokalno: vrednost `SERVICE_ROLE_KEY` iz `pnpm exec supabase status -o env`). Ključ koristi samo ova skripta, nikad kod u `src/`.
+2. Pokreni `pnpm seed:demo`.
+
+Skripta je deterministička (isti raspored podataka pri svakom pokretanju, vremena relativna u odnosu na danas) i sme da se pokrene više puta: briše samo zahteve koje je sama napravila. Brojevi novih zahteva (#) rastu pri svakom pokretanju, jer ih dodeljuje baza. Posle `pnpm db:reset` je treba pokrenuti ponovo.
+
 ## Komande
 
 | Komanda                             | Šta radi                                                                                |
