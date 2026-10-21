@@ -104,7 +104,8 @@
     "logout": "Sign out",
     "tickets": "Tickets",
     "myTickets": "My tickets",
-    "newTicket": "New ticket"
+    "newTicket": "New ticket",
+    "notifications": "Notifications"
   },
   "roles": {
     "customer": "Customer",
@@ -159,6 +160,36 @@
     "workloadEmpty": "No active team members.",
     "analyticsLink": "Analytics",
     "showList": "Show tickets: {label}"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Changes to your tickets and the team's tickets, newest first.",
+    "bellLabel": "Notifications",
+    "bellLabelUnread": "Notifications ({count} unread)",
+    "markAllRead": "Mark all as read",
+    "markedAllRead": "All notifications are marked as read.",
+    "viewAll": "All notifications",
+    "loading": "Loading…",
+    "empty": "You have no notifications.",
+    "emptyUnread": "You have no unread notifications.",
+    "unread": "unread",
+    "someone": "Someone",
+    "open": "Open",
+    "filterLabel": "Show notifications",
+    "filterAll": "All",
+    "filterUnread": "Unread ({count})",
+    "pagination": "Pages",
+    "previous": "Previous",
+    "next": "Next",
+    "pageStatus": "Page {page} of {pages}",
+    "types": {
+      "ticket_created": "New ticket #{number} from {actor}",
+      "ticket_assigned": "{actor} assigned ticket #{number} to you",
+      "status_changed": "{actor} changed the status of ticket #{number}",
+      "comment_added": "{actor} commented on ticket #{number}",
+      "internal_comment_added": "{actor} added an internal note to ticket #{number}",
+      "ticket_rated": "{actor} rated ticket #{number}"
+    }
   },
   "placeholder": {
     "text": "This page is under construction and will be available soon."

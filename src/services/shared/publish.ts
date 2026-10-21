@@ -8,7 +8,7 @@
  *   - staff       — samo tim; šalje se samo kad je akter agent ili admin,
  *                   jer korisnik nema pravo slanja na taj kanal (politika u bazi)
  * Interna beleška ide SAMO na kanal staff, da korisnik ne sazna ni da je dodata.
- * Klijentsko slušanje (osvežavanje bez reload-a) dolazi u Fazi 7.
+ * Klijent sluša preko useTicketRealtime i useStaffRealtime (src/hooks/).
  * Koriste ga: TicketService, CommentService, RatingService.
  * Povezano sa: src/lib/realtime (RealtimePublisher), CLAUDE.md „Real-time sloj“.
  */

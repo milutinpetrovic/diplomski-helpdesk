@@ -7,6 +7,9 @@
  * uspešnog upisa u bazu.
  * Povezano sa: types.ts, politika realtime_broadcast_insert u bazi (pošiljalac
  * mora smeti da vidi kanal).
+ * Prijava: Realtime mora znati ko šalje (privatni kanal), pa pre slanja dobija
+ * pristupni token: onaj iz zaglavlja Authorization (Swagger, Postman) ili iz
+ * sesije u kolačiću (aplikacija). Bez tokena bi pošiljalac bio gost i bio odbijen.
  */
 import type { RealtimeEvent } from "@/lib/realtime/events";
 import type { RealtimePayload, RealtimePublisher } from "@/lib/realtime/types";
@@ -14,8 +17,14 @@ import type { DbClient } from "@/lib/supabase/types";
 
 /** Supabase Realtime implementacija slanja događaja. */
 export class SupabaseRealtimePublisher implements RealtimePublisher {
-  /** Ulaz: Supabase klijent sa sesijom korisnika koji je izvršio izmenu. */
-  constructor(private readonly client: DbClient) {}
+  /**
+   * Ulaz: Supabase klijent korisnika koji je izvršio izmenu i, ako je poziv
+   * stigao sa `Authorization: Bearer`, taj token (inače se čita iz sesije).
+   */
+  constructor(
+    private readonly client: DbClient,
+    private readonly accessToken: string | null = null,
+  ) {}
 
   /**
    * Šalje događaj na kanal. Neuspeh slanja se samo beleži u log i ne ruši
@@ -27,6 +36,12 @@ export class SupabaseRealtimePublisher implements RealtimePublisher {
     event: RealtimeEvent,
     payload: Omit<RealtimePayload, "event">,
   ): Promise<void> {
+    // Korak 1: token pošiljaoca za Realtime (privatni kanal proverava ko šalje).
+    const token =
+      this.accessToken ?? (await this.client.auth.getSession()).data.session?.access_token;
+    await this.client.realtime.setAuth(token ?? null);
+
+    // Korak 2: slanje preko HTTP-a i zatvaranje privremenog kanala.
     const realtimeChannel = this.client.channel(channel, { config: { private: true } });
     try {
       const message: RealtimePayload = { ...payload, event };

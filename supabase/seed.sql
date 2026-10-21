@@ -11,6 +11,7 @@
 --        ana@helpdesk.test     - Korisnik
 --        marko@helpdesk.test   - Korisnik
 --   3. 12 demo zahteva sa komentarima, istorijom i jednom ocenom (Faza 5)
+--   4. obaveštenja za te zahteve, novija nepročitana (Faza 7)
 --
 -- ID-jevi naloga su fiksni da bi ih testovi mogli koristiti.
 -- Veliki skup demo zahteva (~150) pravi skripta u Fazi 8 (scripts/seed-demo.ts).
@@ -226,3 +227,33 @@ values
 insert into public.ticket_ratings (ticket_id, rated_by, score, comment, created_at)
 values
   ('20000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000004', 5, 'Brzo i ljubazno, hvala!', now() - interval '339 hours');
+
+-- 5e: obaveštenja (Faza 7), usklađena sa događajima iz 5a–5d: ko je šta
+-- uradio i kada. U aplikaciji ih pravi baza (RPC funkcije); ovde se upisuju
+-- direktno. Novija (poslednja 24 sata) su nepročitana, da se posle
+-- `supabase db reset` odmah vidi brojač na zvoncetu za svaku ulogu:
+--   Ana 2, Marko 3, Jelena 2, Nikola 2, Admin 2 nepročitana.
+insert into public.notifications (recipient_id, actor_id, ticket_id, type, is_read, created_at)
+values
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000004', 'status_changed', false, now() - interval '24 hours'),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000004', 'comment_added', false, now() - interval '24 hours'),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000003', 'status_changed', true, now() - interval '116 hours'),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000003', 'comment_added', true, now() - interval '116 hours'),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000001', 'status_changed', true, now() - interval '69 hours'),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000001', 'comment_added', true, now() - interval '69 hours'),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000009', 'status_changed', false, now() - interval '6 hours'),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000009', 'comment_added', false, now() - interval '6 hours'),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000003', '20000000-0000-4000-8000-000000000007', 'comment_added', false, now() - interval '19 hours'),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000011', 'status_changed', true, now() - interval '44 hours'),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-000000000002', '20000000-0000-4000-8000-000000000011', 'comment_added', true, now() - interval '44 hours'),
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000002', 'ticket_created', false, now() - interval '2 hours'),
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000005', '20000000-0000-4000-8000-000000000008', 'ticket_created', false, now() - interval '6 hours'),
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000010', 'ticket_created', true, now() - interval '24 hours'),
+  ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000001', 'comment_added', true, now() - interval '50 hours'),
+  ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000002', 'ticket_created', false, now() - interval '2 hours'),
+  ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000005', '20000000-0000-4000-8000-000000000008', 'ticket_created', false, now() - interval '6 hours'),
+  ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000010', 'ticket_created', true, now() - interval '24 hours'),
+  ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000005', 'ticket_rated', true, now() - interval '339 hours'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000002', 'ticket_created', false, now() - interval '2 hours'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000005', '20000000-0000-4000-8000-000000000008', 'ticket_created', false, now() - interval '6 hours'),
+  ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000004', '20000000-0000-4000-8000-000000000010', 'ticket_created', true, now() - interval '24 hours');

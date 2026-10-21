@@ -62,7 +62,7 @@ async function call(
 /** Zahtevi koje korisnik vidi (RLS), za nezavisno brojanje. */
 async function visibleTickets(user: SeedUser) {
   const { data, error } = await clients[user]!.from("tickets").select(
-    "id, status, priority, assigned_to, created_by",
+    "id, number, status, priority, assigned_to, created_by, updated_at",
   );
   if (error) throw error;
   return data;
@@ -99,11 +99,24 @@ describe("GET /api/dashboard", () => {
       for (const ticket of json[list]) expect(ids.has(ticket.id)).toBe(true);
     }
     for (const ticket of json.waitingOnMe) expect(ticket.status).toBe("waiting_on_customer");
-    // Seed: #1003 čeka Anin odgovor, #1004 je rešen i nije ocenjen, #1005 je ocenjen.
-    expect(json.waitingOnMe.map((t: { number: number }) => t.number)).toContain(1003);
-    const toRate = json.toRate.map((t: { number: number }) => t.number);
-    expect(toRate).toContain(1004);
-    expect(toRate).not.toContain(1005);
+
+    // Liste odgovaraju nezavisnom računanju (poslednje menjani prvi, najviše 5).
+    // Drugi testovi dodaju Ani zahteve, pa se ne oslanjamo samo na seed.
+    const newestFirst = (a: { updated_at: string }, b: { updated_at: string }) =>
+      b.updated_at.localeCompare(a.updated_at);
+    const waiting = mine.filter((t) => t.status === "waiting_on_customer").sort(newestFirst);
+    expect(json.waitingOnMe.map((t: { id: string }) => t.id)).toEqual(
+      waiting.slice(0, 5).map((t) => t.id),
+    );
+    const { data: ratings } = await clients.ana!.from("ticket_ratings").select("ticket_id");
+    const rated = new Set((ratings ?? []).map((r) => r.ticket_id));
+    const unrated = mine
+      .filter((t) => ["resolved", "closed"].includes(t.status) && !rated.has(t.id))
+      .sort(newestFirst);
+    const toRate = json.toRate.map((t: { id: string }) => t.id);
+    expect(toRate).toEqual(unrated.slice(0, 5).map((t) => t.id));
+    // Seed: #1005 je već ocenjen, pa nikad nije u „Ocenite rešenje“.
+    expect(json.toRate.map((t: { number: number }) => t.number)).not.toContain(1005);
   });
 
   it("korisnik ne broji tuđe zahteve: Markov novi zahtev ne menja Anin panel", async () => {

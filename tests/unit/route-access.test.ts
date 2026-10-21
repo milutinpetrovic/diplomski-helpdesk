@@ -73,6 +73,7 @@ describe("meni po ulozi", () => {
       "dashboard",
       "myTickets",
       "newTicket",
+      "notifications",
       "profile",
     ]);
   });
@@ -81,6 +82,7 @@ describe("meni po ulozi", () => {
     expect(getNavItems("agent").map((item) => item.key)).toEqual([
       "dashboard",
       "tickets",
+      "notifications",
       "profile",
     ]);
   });
@@ -89,6 +91,7 @@ describe("meni po ulozi", () => {
     expect(getNavItems("admin").map((item) => item.key)).toEqual([
       "dashboard",
       "tickets",
+      "notifications",
       "analytics",
       "users",
       "categories",

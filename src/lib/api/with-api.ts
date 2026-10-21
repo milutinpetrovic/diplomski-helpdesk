@@ -107,7 +107,11 @@ export function withApi(
       if (options.roles !== "public") {
         const client = await createRequestClient(request);
         const auth = await requireRole(client, options.roles);
-        ctx = { db: client.db, auth, publisher: getRealtimePublisher(client.db) };
+        ctx = {
+          db: client.db,
+          auth,
+          publisher: getRealtimePublisher(client.db, client.accessToken),
+        };
       }
 
       // Korak 2: provera ulaza (ZodError -> 400 VALIDATION_ERROR u handleru grešaka).

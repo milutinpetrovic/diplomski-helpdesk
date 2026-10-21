@@ -6,7 +6,8 @@
  *   - agent: red rada (dodeljeni, nedodeljeni, hitni) i svoja ocena
  *   - admin: stanje svih zahteva i opterećenje tima
  * Podaci se čitaju na serveru preko istog servisa kao GET /api/dashboard.
- * Osvežavanje bez reload-a dolazi u Fazi 7 (real-time obaveštenja).
+ * Osvežava se bez reload-a kad stigne obaveštenje ili događaj tima (Faza 7,
+ * NotificationBell i StaffLiveRefresh u zaglavlju).
  * Pristup: customer, agent, admin.
  */
 import { getTranslations } from "next-intl/server";

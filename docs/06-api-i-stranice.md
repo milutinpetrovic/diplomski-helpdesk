@@ -97,7 +97,9 @@ Napomene (Faza 5a):
 | `POST /api/notifications/{id}/read` | C A AD | —                           | `204`                                         | UC-08 |
 | `POST /api/notifications/read-all`  | C A AD | —                           | `204`                                         | UC-08 |
 
-`NotificationItem` sadrži `type`, `ticketId`, `ticketNumber`, `ticketTitle`, `actorName`, `isRead`, `createdAt` — tekst sastavlja UI iz prevoda (`notifications.<type>`), npr. „{actorName} je promenio status zahteva #{ticketNumber}“.
+`NotificationItem` sadrži `id`, `type`, `ticketId`, `ticketNumber`, `ticketTitle`, `actorName`, `isRead`, `createdAt`; tekst sastavlja UI iz prevoda (`notifications.types.<type>`), npr. „Zahtev #1003: promenjen status (Jelena Agentić)“. Odgovor liste (`NotificationList`) je `{ items, page, pageSize, total, unreadCount }`; `unreadCount` ne zavisi od filtera `unreadOnly`. `POST .../{id}/read` za tuđe ili nepostojeće obaveštenje vraća `404 NOT_FOUND`.
+
+Real-time (Faza 7): zvonce sluša `NOTIFICATION_CREATED` na kanalu `user:<id>` (`postgres_changes` nad `notifications`, RLS), stranica zahteva kanal `ticket:<id>`, a lista i panel tima kanal `staff`. Poruka nosi samo `{ event, ticketId, actorId }`; posle nje stranica ponovo učitava podatke (`router.refresh`, grupisano u 300 ms).
 
 ### Kategorije (tag `Categories`)
 
