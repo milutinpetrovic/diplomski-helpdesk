@@ -55,14 +55,53 @@ async function waitForJoined(client: DbClient, topic: string): Promise<void> {
   throw new Error(`Kanal ${topic} se nije povezao za ${TIMEOUT_MS} ms`);
 }
 
-/** Obećanje koje se ispunjava prvom porukom (ili pada posle TIMEOUT_MS). */
+/**
+ * Hvatač prve poruke: handler se predaje pretplati, a wait() čeka poruku.
+ * Rok od TIMEOUT_MS teče od poziva wait() (posle pripreme kanala), ne ranije.
+ */
 function nextMessage() {
-  let resolve!: (payload: RealtimePayload) => void;
-  const promise = new Promise<RealtimePayload>((done, fail) => {
-    resolve = done;
-    setTimeout(() => fail(new Error("Poruka nije stigla")), TIMEOUT_MS);
-  });
-  return { promise, handler: (payload: RealtimePayload) => resolve(payload) };
+  let received: RealtimePayload | null = null;
+  let notify: ((payload: RealtimePayload) => void) | null = null;
+  return {
+    handler: (payload: RealtimePayload) => {
+      received ??= payload;
+      notify?.(payload);
+    },
+    wait: () =>
+      new Promise<RealtimePayload>((resolve, reject) => {
+        if (received) return resolve(received);
+        notify = resolve;
+        setTimeout(() => reject(new Error("Poruka nije stigla")), TIMEOUT_MS);
+      }),
+  };
+}
+
+/**
+ * Čeka da Realtime potvrdi praćenje izmena u tabeli (sistemska poruka
+ * „postgres_changes“). Prvo praćenje posle pokretanja servera može da traje
+ * nekoliko sekundi. Slušalac se dodaje na kanal pre nego što ga provajder
+ * otvori (Supabase za isti naziv vraća isti kanal), pa poruka ne može da promakne.
+ * Vraća: funkciju koja čeka potvrdu; greška iz Realtime-a ide u poruku testa.
+ */
+function watchPostgresChangesReady(client: DbClient, topic: string) {
+  let status: { ok: boolean; message: string } | null = null;
+  client
+    .channel(topic)
+    .on("system", {}, (payload: { extension?: string; status?: string; message?: string }) => {
+      if (payload.extension === "postgres_changes") {
+        status = { ok: payload.status === "ok", message: payload.message ?? "" };
+      }
+    });
+  return async () => {
+    const deadline = Date.now() + 30_000;
+    while (Date.now() < deadline) {
+      const current = status as { ok: boolean; message: string } | null;
+      if (current?.ok) return;
+      if (current) throw new Error(`Realtime postgres_changes greška: ${current.message}`);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    throw new Error("Realtime nije potvrdio praćenje tabele notifications za 30 s");
+  };
 }
 
 /** Komentar u ime korisnika kroz API rutu (kao iz aplikacije ili Swagger-a). */
@@ -99,75 +138,81 @@ async function trySubscribe(client: DbClient, topic: string): Promise<string> {
   }
 }
 
-describe.skipIf(process.env.REALTIME_TESTS === "off")("Supabase Realtime", () => {
-  it("komentar korisnika stiže agentu na kanal zahteva, samo sa ID-jevima", async () => {
-    // Korak 1: agent sluša kanal zahteva preko RealtimeProvider-a (kao u aplikaciji).
-    const provider = new SupabaseRealtimeProvider(agent);
-    const message = nextMessage();
-    const stop = provider.subscribe(
-      ticketChannel(ticket.id),
-      REALTIME_EVENTS.TICKET_COMMENT_ADDED,
-      message.handler,
-    );
-    try {
-      await waitForJoined(agent, ticketChannel(ticket.id));
+// Rok po testu: prvo pokretanje praćenja tabele u Realtime-u ume da traje.
+describe.skipIf(process.env.REALTIME_TESTS === "off")(
+  "Supabase Realtime",
+  { timeout: 60_000 },
+  () => {
+    it("komentar korisnika stiže agentu na kanal zahteva, samo sa ID-jevima", async () => {
+      // Korak 1: agent sluša kanal zahteva preko RealtimeProvider-a (kao u aplikaciji).
+      const provider = new SupabaseRealtimeProvider(agent);
+      const message = nextMessage();
+      const stop = provider.subscribe(
+        ticketChannel(ticket.id),
+        REALTIME_EVENTS.TICKET_COMMENT_ADDED,
+        message.handler,
+      );
+      try {
+        await waitForJoined(agent, ticketChannel(ticket.id));
 
-      // Korak 2: Ana dodaje komentar kroz API rutu.
-      const started = Date.now();
-      await commentAs(ana, COMMENT_TEXT);
-      const payload = await message.promise;
-      console.info(`[realtime] komentar stigao agentu za ${Date.now() - started} ms`);
+        // Korak 2: Ana dodaje komentar kroz API rutu.
+        const started = Date.now();
+        await commentAs(ana, COMMENT_TEXT);
+        const payload = await message.wait();
+        console.info(`[realtime] komentar stigao agentu za ${Date.now() - started} ms`);
 
-      // Korak 3: poruka nosi samo vrstu događaja i ID-jeve.
-      expect(payload).toEqual({
-        event: REALTIME_EVENTS.TICKET_COMMENT_ADDED,
-        ticketId: ticket.id,
-        actorId: USERS.ana.id,
-      });
-      expect(JSON.stringify(payload)).not.toContain(COMMENT_TEXT);
-      expect(JSON.stringify(payload)).not.toContain(ticket.title);
-    } finally {
-      stop();
-    }
-  });
+        // Korak 3: poruka nosi samo vrstu događaja i ID-jeve.
+        expect(payload).toEqual({
+          event: REALTIME_EVENTS.TICKET_COMMENT_ADDED,
+          ticketId: ticket.id,
+          actorId: USERS.ana.id,
+        });
+        expect(JSON.stringify(payload)).not.toContain(COMMENT_TEXT);
+        expect(JSON.stringify(payload)).not.toContain(ticket.title);
+      } finally {
+        stop();
+      }
+    });
 
-  it("korisnik ne može da se pretplati na kanal tuđeg zahteva", async () => {
-    // Vlasnik sme (kontrolni slučaj), drugi korisnik ne sme.
-    expect(await trySubscribe(ana, ticketChannel(ticket.id))).toBe("SUBSCRIBED");
-    expect(await trySubscribe(marko, ticketChannel(ticket.id))).toBe("CHANNEL_ERROR");
-    // Ni na kanal tima ni na tuđi lični kanal.
-    expect(await trySubscribe(marko, "staff")).toBe("CHANNEL_ERROR");
-    expect(await trySubscribe(marko, userChannel(USERS.ana.id))).toBe("CHANNEL_ERROR");
-  });
+    it("korisnik ne može da se pretplati na kanal tuđeg zahteva", async () => {
+      // Vlasnik sme (kontrolni slučaj), drugi korisnik ne sme.
+      expect(await trySubscribe(ana, ticketChannel(ticket.id))).toBe("SUBSCRIBED");
+      expect(await trySubscribe(marko, ticketChannel(ticket.id))).toBe("CHANNEL_ERROR");
+      // Ni na kanal tima ni na tuđi lični kanal.
+      expect(await trySubscribe(marko, "staff")).toBe("CHANNEL_ERROR");
+      expect(await trySubscribe(marko, userChannel(USERS.ana.id))).toBe("CHANNEL_ERROR");
+    });
 
-  it("novo obaveštenje stiže vlasniku zahteva (tabela notifications, RLS)", async () => {
-    // Korak 1: Ana sluša svoja obaveštenja.
-    const provider = new SupabaseRealtimeProvider(ana);
-    const message = nextMessage();
-    const stop = provider.subscribe(
-      userChannel(USERS.ana.id),
-      REALTIME_EVENTS.NOTIFICATION_CREATED,
-      message.handler,
-    );
-    try {
-      await waitForJoined(ana, `${userChannel(USERS.ana.id)}:notifications`);
-      // Praćenje izmena u tabeli se uključuje malo posle povezivanja kanala.
-      await new Promise((resolve) => setTimeout(resolve, 1_000));
+    it("novo obaveštenje stiže vlasniku zahteva (tabela notifications, RLS)", async () => {
+      // Korak 1: Ana sluša svoja obaveštenja (i čekamo da Realtime potvrdi praćenje tabele).
+      const topic = `${userChannel(USERS.ana.id)}:notifications`;
+      const ready = watchPostgresChangesReady(ana, topic);
+      const provider = new SupabaseRealtimeProvider(ana);
+      const message = nextMessage();
+      const stop = provider.subscribe(
+        userChannel(USERS.ana.id),
+        REALTIME_EVENTS.NOTIFICATION_CREATED,
+        message.handler,
+      );
+      try {
+        await waitForJoined(ana, topic);
+        await ready();
 
-      // Korak 2: agent komentariše Anin zahtev (baza pravi obaveštenje za Anu).
-      const started = Date.now();
-      await commentAs(agent, "Odgovor agenta.");
-      const payload = await message.promise;
-      console.info(`[realtime] obaveštenje stiglo Ani za ${Date.now() - started} ms`);
+        // Korak 2: agent komentariše Anin zahtev (baza pravi obaveštenje za Anu).
+        const started = Date.now();
+        await commentAs(agent, "Odgovor agenta.");
+        const payload = await message.wait();
+        console.info(`[realtime] obaveštenje stiglo Ani za ${Date.now() - started} ms`);
 
-      // Korak 3: poruka nosi samo ID zahteva i aktera.
-      expect(payload).toEqual({
-        event: REALTIME_EVENTS.NOTIFICATION_CREATED,
-        ticketId: ticket.id,
-        actorId: USERS.agent.id,
-      });
-    } finally {
-      stop();
-    }
-  });
-});
+        // Korak 3: poruka nosi samo ID zahteva i aktera.
+        expect(payload).toEqual({
+          event: REALTIME_EVENTS.NOTIFICATION_CREATED,
+          ticketId: ticket.id,
+          actorId: USERS.agent.id,
+        });
+      } finally {
+        stop();
+      }
+    });
+  },
+);
