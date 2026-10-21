@@ -9,23 +9,25 @@ Izveštaj za poglavlje rada „Testiranje aplikacije“. Opisuje koje vrste test
 | Unit         | Vitest                                | `tests/unit/`            | 294          | Pravila bez baze: tabela prelaza statusa, ko sme šta (`TicketAccessPolicy`), Zod šeme, mapiranje grešaka, pomoćne funkcije |
 | Integracioni | Vitest + lokalni Supabase             | `tests/integration/`     | 190          | API rute i RPC funkcije nad pravom bazom, prijavljeni kao različite uloge; real-time događaji                              |
 | RLS          | Vitest + lokalni Supabase (PostgREST) | `tests/integration/rls/` | 63           | Svaka ćelija RLS matrice (sekcija 3): baza sama brani podatke i kad se API zaobiđe                                         |
-| E2E          | Playwright                            | `tests/e2e/`             | —            | Faza 9b                                                                                                                    |
+| E2E          | Playwright                            | `tests/e2e/`             | 11           | Glavni scenariji u pravom pregledaču (Chromium), kao korisnik, agent i admin (sekcija 5)                                   |
 | API          | Postman + newman                      | `postman/`               | —            | Faza 9c                                                                                                                    |
 
 Broj integracionih testova ne uključuje RLS testove (oni su u svom redu). Svi testovi se pokreću u CI-u (GitHub Actions, `.github/workflows/ci.yml`) na svaki push i pull request.
 
 ## 2. Pokretanje
 
-| Komanda              | Šta radi                                                                                    | Potrebno        |
-| -------------------- | ------------------------------------------------------------------------------------------- | --------------- |
-| `pnpm test:unit`     | unit testovi (nekoliko sekundi)                                                             | ništa           |
-| `pnpm test:db`       | integracioni i RLS testovi                                                                  | `pnpm db:start` |
-| `pnpm test:coverage` | svi Vitest testovi + izveštaj o pokrivenosti u `coverage/` (otvoriti `coverage/index.html`) | `pnpm db:start` |
+| Komanda              | Šta radi                                                                                    | Potrebno                                        |
+| -------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `pnpm test:unit`     | unit testovi (nekoliko sekundi)                                                             | ništa                                           |
+| `pnpm test:db`       | integracioni i RLS testovi                                                                  | `pnpm db:start`                                 |
+| `pnpm test:coverage` | svi Vitest testovi + izveštaj o pokrivenosti u `coverage/` (otvoriti `coverage/index.html`) | `pnpm db:start`                                 |
+| `pnpm test:e2e`      | E2E testovi u pregledaču; aplikaciju sam pokreće (`pnpm start`) na http://localhost:3000    | `pnpm db:start`, `pnpm seed:demo`, `pnpm build` |
 
 U CI-u:
 
 - posao `check` pokreće unit testove
 - posao `db` pokreće `pnpm test:coverage` nad lokalnim Supabase-om i čuva izveštaj kao artefakt **coverage** (preuzima se sa stranice CI pokretanja)
+- posao `e2e` pokreće Supabase, demo podatke, build i `pnpm test:e2e`; izveštaj Playwright-a (sa snimcima ekrana i tragom za test koji padne) čuva se kao artefakt **playwright-report**
 
 ## 3. RLS matrica i testovi
 
@@ -141,3 +143,19 @@ Stranice i React komponente se ne mere ovde, jer njih pokrivaju E2E testovi.
 | ukupno (services + lib + api)                                                                 | 93%                |
 
 Brojevi su iz lokalnog pokretanja. Tačni brojevi za rad uzimaju se iz artefakta **coverage** poslednjeg CI pokretanja na `main`, gde rade i testovi registracije i potvrde emaila (`services/auth`), koji lokalno bez pravog Supabase Auth servera ne rade.
+
+## 5. E2E scenariji (Playwright)
+
+Testovi rade u pravom pregledaču (Chromium) nad pravom aplikacijom i lokalnim Supabase-om. Prijavljuju se kroz formu, kao pravi korisnici. Svaki test pravi svoj zahtev sa jedinstvenim naslovom, pa ne zavisi od demo podataka ni od drugih testova. Kad više korisnika radi istovremeno (korisnik i agent), svaki ima svoj kontekst pregledača, odnosno odvojene kolačiće i sesiju.
+
+| Fajl                       | Scenario                                                                                                                                                                   | Slučajevi korišćenja / zahtevi                 |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `auth.spec.ts`             | registracija, potvrda emaila linkom iz Mailpit-a, prvi ulazak (uloga korisnik); pogrešna lozinka; odjava i zaštita stranica                                                | UC-01..UC-04, FZ-1                             |
+| `ticket-lifecycle.spec.ts` | korisnik prijavi zahtev → agent preuzme, odgovori, napiše internu belešku, reši → korisnik vidi odgovor (ne i belešku), oceni i potvrdi; zatvoren zahtev se ne komentariše | UC-09, UC-11..UC-14, UC-16, UC-17, FZ-8, FZ-16 |
+| `realtime.spec.ts`         | dva prozora: agent menja status, a korisniku se bez reload-a menjaju status i brojač na zvoncu                                                                             | FZ-12, FZ-13                                   |
+| `rbac.spec.ts`             | korisnik ne ulazi u administraciju i analitiku; agent ne vidi administraciju i ne prijavljuje zahteve; admin otvara oba                                                    | FZ-3, NFZ-2                                    |
+| `language.spec.ts`         | srpski → engleski, izbor se pamti posle reload-a                                                                                                                           | NFZ-7                                          |
+| `mobile.spec.ts`           | telefon 390 px: meni iza dugmeta, lista, zahtev i kanban tabla bez vodoravnog pomeranja                                                                                    | NFZ-1                                          |
+| `kanban.spec.ts`           | prevlačenje mišem (preuzimanje), zabranjen prelaz sa porukom, prevlačenje tastaturom                                                                                       | UC-13, UC-16, NFZ-4                            |
+
+Registracija i real-time traže pravi Supabase Auth (sa Mailpit-om) i Realtime, koje pokreće `supabase start`. U okruženju bez Docker-a real-time test se preskače (`REALTIME_TESTS=off`), kao i integracioni real-time testovi. U CI-u rade svi.

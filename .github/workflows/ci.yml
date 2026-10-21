@@ -1,6 +1,6 @@
 # Automatska provera koda na svaki push i Pull Request:
 # lint (ESLint), provera tipova (TypeScript), provera formata (Prettier), unit testovi (Vitest)
-# i build (Next.js).
+# i build (Next.js). Posao `db` pokreće testove nad pravom bazom, a `e2e` testove u pregledaču.
 name: CI
 
 on:
@@ -75,3 +75,38 @@ jobs:
           count=$(psql "$DB_URL" -tAc "select count(*) from public.tickets where created_by::text like '00000000-0000-4000-8001-%'")
           echo "Demo zahteva u bazi: $count"
           test "$count" -ge 130 && test "$count" -le 200
+
+  # E2E testovi (Playwright, tests/e2e/): pravi pregledač klikće kroz aplikaciju
+  # nad lokalnim Supabase-om (Auth sa Mailpit-om za potvrdu emaila, Realtime za
+  # obaveštenja). Kad test padne, izveštaj sa snimcima ekrana i tragom se čuva
+  # kao artefakt „playwright-report“.
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,storage-api
+      - run: pnpm exec supabase status -o env | sed 's/"//g' >> "$GITHUB_ENV"
+      # Aplikacija za testove radi sa lokalnim Supabase-om (i u buildu i pri pokretanju).
+      - name: Podešavanje aplikacije
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SITE_URL=http://localhost:3000" >> "$GITHUB_ENV"
+      - run: pnpm seed:demo
+      - run: pnpm build
+      # Pregledač Chromium za Playwright (sa sistemskim bibliotekama).
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Sačuvaj Playwright izveštaj
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
