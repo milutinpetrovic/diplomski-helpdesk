@@ -4,3 +4,6 @@ node_modules
 pnpm-lock.yaml
 next-env.d.ts
 docs/img
+
+# Generiše je scripts/postman-generate.mts (pnpm postman:generate --check u CI-u).
+postman/helpdesk.postman_collection.json
