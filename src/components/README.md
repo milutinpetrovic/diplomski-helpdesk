@@ -10,6 +10,7 @@ Spisak planiranih komponenti: `docs/03-dijagram-klasa.md`, sekcija 5.
 - `TicketList` (tabela na računaru, kartice na telefonu), `TicketFilters` (filteri u adresi), `TicketPagination`
 - `NewTicketForm`, `TicketActions` (dugmad po `permissions`), `TicketComments` + `CommentForm`, `TicketHistory`, `RatingForm` + `RatingStars`, `TicketBadges`
 - `ticket-labels.ts` (boje, nazivi dugmadi prelaza, sortiranja) i `list-params.ts` (adresa <-> filteri) su čiste funkcije pokrivene testom `tests/unit/ticket-ui.test.ts`.
+- Kanban tabla (`/tickets?view=board`): `TicketViewToggle` (Lista / Tabla), `TicketBoard` (prevlačenje, `@dnd-kit/core`), `BoardColumn`, `BoardCard`. Pravila su u `board-rules.ts` (`boardDropTargets`, `applyBoardMoves`), pokrivena testom `tests/unit/ticket-board.test.ts`.
 
 ## analytics/ (Faza 8)
 

@@ -5,6 +5,8 @@
  * Enter ili dugme „Traži“. Filteri se upisuju u adresu stranice
  * (/tickets?status=open&q=vpn), pa server učitava novu listu, a link se može podeliti.
  * Filter „Dodeljen“ vidi samo tim podrške (korisnik vidi samo svoje zahteve).
+ * Na kanban tabli (?view=board) nema filtera statusa, jer su statusi kolone table;
+ * prikaz se čuva pri svakoj promeni filtera.
  * Koristi ga: stranica /tickets. Klijentska komponenta (reaguje na izbor).
  * Povezano sa: list-params.ts (adresa <-> filteri), GET /api/tickets (isti parametri).
  */
@@ -15,7 +17,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 
-import { ticketListHref } from "@/components/tickets/list-params";
+import { ticketListHref, type TicketView } from "@/components/tickets/list-params";
 import { categoryName, SORT_LABEL_KEYS } from "@/components/tickets/ticket-labels";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +35,8 @@ const FILTER_FIELDS = ["q", "status", "priority", "categoryId", "assigneeId", "s
  * Forma filtera.
  * Ulaz: trenutni filteri (iz adrese), aktivne kategorije, da li je prijavljen
  * član tima (prikazuje filter „Dodeljen“), spisak agenata (samo admin; agent
- * bira samo „meni“ / „nedodeljeni“) i da li je neki filter uključen.
+ * bira samo „meni“ / „nedodeljeni“), da li je neki filter uključen i prikaz
+ * (lista ili tabla).
  * Uloge: customer, agent, admin.
  */
 export function TicketFilters({
@@ -42,12 +45,14 @@ export function TicketFilters({
   isStaff,
   agents,
   filtersActive,
+  view,
 }: {
   query: TicketListQuery;
   categories: Category[];
   isStaff: boolean;
   agents: AgentSummary[];
   filtersActive: boolean;
+  view: TicketView;
 }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -64,7 +69,7 @@ export function TicketFilters({
       const value = data.get(field);
       changes[field] = typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
     }
-    router.push(ticketListHref({ ...query, ...changes, page: 1 }));
+    router.push(ticketListHref({ ...query, ...changes, page: 1, view }));
   }
 
   return (
@@ -102,18 +107,21 @@ export function TicketFilters({
 
       {/* Padajuće liste: na telefonu dve u redu, na računaru sve u jednom redu. */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="status">{t("tickets.columns.status")}</Label>
-          <NativeSelect id="status" name="status" defaultValue={query.status ?? ""}>
-            <option value="">{t("tickets.filters.all")}</option>
-            <option value={UNRESOLVED_FILTER}>{t("tickets.filters.unresolved")}</option>
-            {TICKET_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {t(`ticketStatus.${status}`)}
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
+        {/* Status: samo u prikazu liste (na tabli su statusi kolone). */}
+        {view === "list" ? (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="status">{t("tickets.columns.status")}</Label>
+            <NativeSelect id="status" name="status" defaultValue={query.status ?? ""}>
+              <option value="">{t("tickets.filters.all")}</option>
+              <option value={UNRESOLVED_FILTER}>{t("tickets.filters.unresolved")}</option>
+              {TICKET_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {t(`ticketStatus.${status}`)}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+        ) : null}
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="priority">{t("tickets.columns.priority")}</Label>
@@ -170,7 +178,9 @@ export function TicketFilters({
 
       {filtersActive ? (
         <Button asChild variant="link" size="sm" className="self-start px-0">
-          <Link href={ticketListHref({ sort: query.sort })}>{t("tickets.filters.reset")}</Link>
+          <Link href={ticketListHref({ sort: query.sort, view })}>
+            {t("tickets.filters.reset")}
+          </Link>
         </Button>
       ) : null}
     </form>
