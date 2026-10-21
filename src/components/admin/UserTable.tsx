@@ -124,8 +124,10 @@ function UserRow({
   const roleSelectId = `role-${user.id}`;
   const locked = isSelf || pending;
 
+  // Red u jednoj liniji (kolone) tek od širine lg: na tabletu bočni meni
+  // zauzima deo ekrana, pa četiri kolone ne staju i red ide jedno ispod drugog.
   return (
-    <li className="flex flex-col gap-3 p-4 md:grid md:grid-cols-[minmax(0,1fr)_16rem_9rem_9rem] md:items-center md:gap-4">
+    <li className="flex flex-col gap-3 p-4 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem_9rem_9rem] lg:items-center lg:gap-4">
       {/* Ime, email i status. */}
       <div className="min-w-0">
         <p className="flex flex-wrap items-center gap-2 font-medium">
@@ -195,7 +197,7 @@ function UserRow({
             ? t("deactivateFor", { name: user.fullName })
             : t("activateFor", { name: user.fullName })
         }
-        className="md:justify-self-end"
+        className="lg:justify-self-end"
       >
         {user.isActive ? t("deactivate") : t("activate")}
       </Button>

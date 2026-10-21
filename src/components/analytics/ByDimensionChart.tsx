@@ -77,7 +77,10 @@ export function ByDimensionChart({ data }: { data: Record<AnalyticsDimension, Co
             aria-hidden="true"
           >
             <ResponsiveContainer width="100%" height="100%">
+              {/* accessibilityLayer={false}: grafikon je skriven od čitača ekrana (aria-hidden),
+                  pa ne sme ni da prima fokus tastaturom; podaci su u tabeli ispod. */}
               <BarChart
+                accessibilityLayer={false}
                 data={rows}
                 layout="vertical"
                 margin={{ top: 0, right: 40, bottom: 0, left: 0 }}

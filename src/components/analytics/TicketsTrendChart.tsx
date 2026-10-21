@@ -78,7 +78,13 @@ export function TicketsTrendChart({
       {/* Grafikon je samo slika za oko; isti podaci su u tabeli ispod (aria-hidden). */}
       <div className="h-72 w-full" aria-hidden="true">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={points} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
+          {/* accessibilityLayer={false}: grafikon je skriven od čitača ekrana (aria-hidden),
+              pa ne sme ni da prima fokus tastaturom; podaci su u tabeli ispod. */}
+          <LineChart
+            accessibilityLayer={false}
+            data={points}
+            margin={{ top: 8, right: 12, bottom: 0, left: -12 }}
+          >
             <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis
               dataKey="bucketStart"
