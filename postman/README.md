@@ -2,11 +2,11 @@
 
 Kolekcija poziva sve API rute aplikacije, redom, kao prave uloge (korisnik, agent, admin) i za svaki poziv proverava status, oblik odgovora i kod greške. Izveštaj o testovima je u [`docs/08-testiranje.md`](../docs/08-testiranje.md), sekcija 6.
 
-| Fajl                               | Šta je                                                                     |
-| ---------------------------------- | -------------------------------------------------------------------------- |
-| `helpdesk.postman_collection.json` | kolekcija (57 poziva u 8 foldera); **generisana, ne menjati ručno**        |
-| `local.postman_environment.json`   | okruženje `local`: `baseUrl` = http://localhost:3000                       |
-| `demo.postman_environment.json`    | okruženje `demo`: `baseUrl` = adresa demo servera (upisati posle deploy-a) |
+| Fajl                               | Šta je                                                                                          |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `helpdesk.postman_collection.json` | kolekcija (57 poziva u 8 foldera); **generisana, ne menjati ručno**                             |
+| `local.postman_environment.json`   | okruženje `local`: `baseUrl` = http://localhost:3000                                            |
+| `demo.postman_environment.json`    | okruženje `demo`: `baseUrl` = adresa demo servera (upisati posle deploy-a, `docs/10-deploy.md`) |
 
 ## Pokretanje u Postman aplikaciji
 

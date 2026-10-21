@@ -13,6 +13,7 @@ Projektni dizajn aplikacije za tehničku podršku (diplomski rad, Milutin Petrov
 | 07  | [Uputstvo za implementaciju](07-uputstvo-za-implementaciju.md)     | Faze 0–10 sa zadacima i kriterijumima završetka, pravila, prevodi, mapa dokument → poglavlje rada                    |
 | 08  | [Testiranje](08-testiranje.md)                                     | Vrste testova, pokretanje, RLS matrica sa testom za svaku ćeliju, pokrivenost koda, Lighthouse                       |
 | 09  | [Uputstvo za korisnike](09-uputstvo-za-korisnike.md)               | Nacrt poglavlja: rad po ulozi korak po korak, sa snimcima ekrana (`img/uputstvo/`)                                   |
+| 10  | [Postavljanje na internet](10-deploy.md)                           | Vercel + Supabase cloud korak po korak, Google prijava, SMTP, provera i rešavanje problema                           |
 
 Pravila za održavanje: kada se u kodu promeni tabela, ruta, klasa ili tok, u istom commit-u se ažurira odgovarajući dokument ovde. Dokumentacija i kod ne smeju da se razilaze.
 

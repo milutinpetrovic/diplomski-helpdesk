@@ -1,7 +1,9 @@
 -- =============================================================================
 -- seed.sql — početni podaci SAMO za lokalni razvoj i testove
 --
--- Pokreće ga `supabase db reset` (posle migracija). U produkciju ne ide.
+-- Pokreće ga `supabase db reset` (posle migracija). Na demo okruženju za odbranu
+-- pokreće se jednom, sa `supabase db push --include-seed` (docs/10-deploy.md).
+-- U pravu produkciju ne ide (demo nalozi imaju javno poznatu lozinku).
 -- Šta pravi:
 --   1. 5 kategorija zahteva (nazivi na srpskom i engleskom)
 --   2. 5 demo naloga sa poznatom lozinkom `Lozinka123!` (spisak u README-u):
