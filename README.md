@@ -30,7 +30,11 @@ Aplikaciju otvarati na **http://localhost:3000** (ne na 127.0.0.1), jer su za tu
 Supabase Studio (pregled baze u pregledaču): http://127.0.0.1:54323.
 Emailovi (potvrda naloga, nova lozinka) se lokalno ne šalju stvarno, nego se vide u Mailpit-u: http://127.0.0.1:54324.
 
-## Demo nalozi (samo lokalno, iz `supabase/seed.sql`)
+## Demo na internetu
+
+Adresa demo servera: _upisuje se posle prvog postavljanja_. Postavljanje na Vercel + Supabase cloud, korak po korak: [`docs/10-deploy.md`](docs/10-deploy.md). Demo nalozi ispod važe i tamo.
+
+## Demo nalozi (iz `supabase/seed.sql`, lokalno i na demo serveru)
 
 Lozinka za sve naloge: `Lozinka123!`
 
