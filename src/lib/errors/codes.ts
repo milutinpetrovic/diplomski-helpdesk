@@ -38,6 +38,7 @@ export const ERROR_HTTP_STATUS = {
   TICKET_NOT_RESOLVED: 409,
   EMAIL_ALREADY_REGISTERED: 409,
   CANNOT_MODIFY_SELF: 409,
+  CATEGORY_SLUG_TAKEN: 409,
   // 429: previše zahteva (Faza A)
   RATE_LIMITED: 429,
   // 500: neočekivana greška

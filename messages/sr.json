@@ -12,7 +12,8 @@
   },
   "common": {
     "appName": "Tehnička podrška",
-    "or": "ili"
+    "or": "ili",
+    "closeDialog": "Zatvori"
   },
   "home": {
     "title": "Tehnička podrška",
@@ -90,7 +91,11 @@
     "scoreRange": "Izaberite ocenu od 1 do 5 zvezdica.",
     "ratingCommentLength": "Komentar uz ocenu može imati najviše 1000 znakova.",
     "rangeOrder": "Datum „od“ ne može biti posle datuma „do“.",
-    "rangeTooLong": "Period može biti najduže 366 dana."
+    "rangeTooLong": "Period može biti najduže 366 dana.",
+    "slugFormat": "Oznaka može imati samo mala slova, brojeve i crtice (do 60 znakova).",
+    "categoryNameLength": "Naziv mora imati od 2 do 60 znakova.",
+    "categoryDescriptionLength": "Opis može imati najviše 300 znakova.",
+    "sortOrderRange": "Redosled mora biti ceo broj od 0 do 1000."
   },
   "nav": {
     "label": "Glavni meni",
@@ -192,9 +197,6 @@
       "internal_comment_added": "Zahtev #{number}: nova interna beleška ({actor})",
       "ticket_rated": "Zahtev #{number} je ocenjen ({actor})"
     }
-  },
-  "placeholder": {
-    "text": "Ova stranica je u izradi i uskoro će biti dostupna."
   },
   "forbidden": {
     "title": "Nemate pristup",
@@ -383,6 +385,7 @@
     "TICKET_NOT_RESOLVED": "Zahtev se može oceniti tek kada je rešen.",
     "EMAIL_ALREADY_REGISTERED": "Nalog sa ovom email adresom već postoji.",
     "CANNOT_MODIFY_SELF": "Ne možete menjati ulogu ili status sopstvenog naloga.",
+    "CATEGORY_SLUG_TAKEN": "Kategorija sa ovom oznakom već postoji.",
     "RATE_LIMITED": "Previše pokušaja. Pokušajte ponovo za nekoliko minuta.",
     "INTERNAL_ERROR": "Došlo je do neočekivane greške. Pokušajte ponovo."
   },
@@ -459,6 +462,96 @@
       "stars": "{score, plural, one {# zvezdica} few {# zvezdice} other {# zvezdica}}",
       "empty": "U ovom periodu nema ocena.",
       "countColumn": "Broj ocena"
+    }
+  },
+  "admin": {
+    "users": {
+      "description": "Svi nalozi: pretraga, promena uloge i deaktivacija.",
+      "caption": "Nalozi",
+      "total": "{total, plural, one {# nalog} few {# naloga} other {# naloga}}",
+      "empty": "Nema naloga za izabrane filtere.",
+      "filters": {
+        "label": "Pretraga naloga",
+        "search": "Pretraga",
+        "searchPlaceholder": "Ime ili email",
+        "searchSubmit": "Traži",
+        "allRoles": "Sve uloge",
+        "all": "Svi",
+        "active": "Aktivni",
+        "inactive": "Deaktivirani",
+        "reset": "Poništi filtere"
+      },
+      "columns": {
+        "role": "Uloga",
+        "status": "Status"
+      },
+      "statusInactive": "Deaktiviran",
+      "selfBadge": "Vi",
+      "self": "Ovo je vaš nalog. Svoju ulogu i nalog ne možete da menjate.",
+      "openTickets": "{count, plural, one {# nerešen zahtev} few {# nerešena zahteva} other {# nerešenih zahteva}}",
+      "saveRole": "Sačuvaj",
+      "saveRoleFor": "Sačuvaj ulogu za {name}",
+      "deactivate": "Deaktiviraj",
+      "deactivateFor": "Deaktiviraj nalog {name}",
+      "activate": "Aktiviraj",
+      "activateFor": "Aktiviraj nalog {name}",
+      "roleChanged": "Nova uloga za {name}: {role}.",
+      "deactivated": "Nalog {name} je deaktiviran.",
+      "activated": "Nalog {name} je ponovo aktivan.",
+      "confirm": {
+        "titleRole": "Promeniti ulogu za {name}?",
+        "titleDeactivate": "Deaktivirati nalog {name}?",
+        "roleText": "Nova uloga: {role}.",
+        "deactivateText": "{name} neće moći da se prijavi dok ponovo ne aktivirate nalog.",
+        "openTickets": "{name} ima {count, plural, one {# nerešen zahtev} few {# nerešena zahteva} other {# nerešenih zahteva}}. Biće vraćeni u red za preuzimanje.",
+        "confirmRole": "Promeni ulogu",
+        "confirmDeactivate": "Deaktiviraj",
+        "cancel": "Odustani"
+      },
+      "pagination": {
+        "label": "Stranice naloga",
+        "previous": "Prethodna",
+        "next": "Sledeća",
+        "status": "Stranica {page} od {pages}"
+      }
+    },
+    "categories": {
+      "description": "Kategorije koje korisnici biraju pri prijavi zahteva. Kategorija se ne briše, nego deaktivira: postojeći zahtevi je zadržavaju.",
+      "caption": "Kategorije",
+      "empty": "Još nema kategorija.",
+      "new": "Nova kategorija",
+      "columns": {
+        "order": "Redosled",
+        "slug": "Oznaka"
+      },
+      "statusInactive": "Neaktivna",
+      "edit": "Izmeni",
+      "editFor": "Izmeni kategoriju {name}",
+      "deactivate": "Deaktiviraj",
+      "deactivateFor": "Deaktiviraj kategoriju {name}",
+      "activate": "Aktiviraj",
+      "activateFor": "Aktiviraj kategoriju {name}",
+      "created": "Kategorija „{name}“ je dodata.",
+      "updated": "Kategorija „{name}“ je sačuvana.",
+      "deactivated": "Kategorija „{name}“ je deaktivirana. Postojeći zahtevi je zadržavaju.",
+      "activated": "Kategorija „{name}“ je ponovo aktivna.",
+      "form": {
+        "titleCreate": "Nova kategorija",
+        "titleEdit": "Izmena kategorije",
+        "description": "Korisnik vidi naziv i opis na jeziku koji je izabrao.",
+        "nameSr": "Naziv (srpski)",
+        "nameEn": "Naziv (engleski)",
+        "descriptionSr": "Opis (srpski)",
+        "descriptionEn": "Opis (engleski)",
+        "descriptionHint": "Opciono, do 300 znakova.",
+        "slug": "Oznaka",
+        "slugHint": "Mala slova, brojevi i crtice, npr. network.",
+        "sortOrder": "Redosled",
+        "sortOrderHint": "Manji broj je ranije u listi.",
+        "submitCreate": "Dodaj kategoriju",
+        "submitEdit": "Sačuvaj",
+        "cancel": "Odustani"
+      }
     }
   }
 }
